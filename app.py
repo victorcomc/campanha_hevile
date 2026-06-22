@@ -30,7 +30,7 @@ app.secret_key = Config.SECRET_KEY
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,   # JS não acessa o cookie de sessão
     SESSION_COOKIE_SAMESITE="Lax",  # mitiga CSRF
-    MAX_CONTENT_LENGTH=25 * 1024 * 1024,  # limite de 25MB no upload de planilha
+    MAX_CONTENT_LENGTH=30 * 1024 * 1024,  # limite de 30MB (planilhas + anexos de e-mail)
 )
 
 login_manager = LoginManager(app)
@@ -301,7 +301,8 @@ def enviar_email():
     assunto = data.get("assunto", "")
     mensagem = data.get("mensagem", "")
     destinatarios = data.get("destinatarios", [])
-    return jsonify(envio.enviar_emails(current_user, assunto, mensagem, destinatarios))
+    anexos = data.get("anexos", [])
+    return jsonify(envio.enviar_emails(current_user, assunto, mensagem, destinatarios, anexos))
 
 
 # ─────────────────────────── Configurações do usuário ───────────────────────────
@@ -317,6 +318,7 @@ def get_config():
         provedor=u.provedor or "outlook",
         smtp_host=u.smtp_host or "smtp.office365.com",
         smtp_port=str(u.smtp_port or 587),
+        assinatura=u.assinatura or "",
     )
 
 
@@ -335,6 +337,8 @@ def salvar_config():
         u.provedor = data.get("provedor") or "outlook"
         u.smtp_host = (data.get("smtp_host") or "smtp.office365.com").strip()
         u.smtp_port = int(data.get("smtp_port") or 587)
+        if "assinatura" in data:
+            u.assinatura = data.get("assinatura") or None
         # só atualiza a senha se o usuário digitou uma nova (senão mantém a atual)
         if data.get("senha"):
             u.email_senha_cripto = cripto(data["senha"])

@@ -5,8 +5,13 @@ grátis e sem risco de ban). Quando a Hevile tiver número dedicado + templates
 aprovados + opt-in, basta implementar `ProvedorMetaCloud` e trocar o provedor —
 o resto do sistema não muda.
 """
+import base64
+import html
+import re
 import smtplib
 import urllib.parse
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -77,9 +82,27 @@ def testar_conexao_email(host, port, user, pwd):
         return False, str(e)
 
 
-def enviar_emails(usuario, assunto, mensagem, destinatarios):
+def _montar_anexos(msg, anexos):
+    """Anexa arquivos (lista de {filename, mimetype, b64}) à mensagem."""
+    for a in anexos or []:
+        try:
+            conteudo = base64.b64decode(a.get("b64", ""))
+        except Exception:
+            continue
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(conteudo)
+        encoders.encode_base64(part)
+        part.add_header(
+            "Content-Disposition", f'attachment; filename="{a.get("filename", "anexo")}"'
+        )
+        msg.attach(part)
+
+
+def enviar_emails(usuario, assunto, mensagem, destinatarios, anexos=None):
     """Envia um e-mail individual para cada destinatário (sem expor a lista).
 
+    Cada destinatário pode trazer um `corpo` já personalizado (vindo do front);
+    senão usamos `mensagem` com {nome} substituído. `anexos` vão em todos.
     `usuario` é o modelo Usuario logado; a senha SMTP é descriptografada aqui.
     Retorna dict {ok, enviados, erros} ou {ok:False, erro}.
     """
@@ -93,18 +116,37 @@ def enviar_emails(usuario, assunto, mensagem, destinatarios):
     nome_rem = usuario.nome or ""
     remetente = f"{nome_rem} <{user}>" if nome_rem else user
 
+    assinatura = (usuario.assinatura or "").strip()
     enviados, erros = 0, []
     try:
         server = _conectar_smtp(host, port, user, pwd)
         for dest in destinatarios:
             try:
-                msg = MIMEMultipart("alternative")
-                msg["Subject"] = assunto
-                msg["From"] = remetente
-                msg["To"] = dest["email"]
-                corpo = mensagem.replace("{nome}", dest.get("nome", ""))
-                msg.attach(MIMEText(corpo, "plain", "utf-8"))
-                server.sendmail(user, dest["email"], msg.as_string())
+                outer = MIMEMultipart("mixed")
+                outer["Subject"] = assunto
+                outer["From"] = remetente
+                outer["To"] = dest["email"]
+
+                # corpo já personalizado pelo front, ou fallback com {nome}
+                corpo = dest.get("corpo") or mensagem.replace("{nome}", dest.get("nome", ""))
+
+                if assinatura:
+                    # e-mail em HTML (assinatura com logo/formatação) + alternativa em texto
+                    alt = MIMEMultipart("alternative")
+                    texto = corpo + "\n\n" + re.sub(r"<[^>]+>", "", assinatura).strip()
+                    alt.attach(MIMEText(texto, "plain", "utf-8"))
+                    corpo_html = html.escape(corpo).replace("\n", "<br>")
+                    html_body = (
+                        '<div style="font-family:Arial,sans-serif;font-size:14px;color:#222">'
+                        f"{corpo_html}</div><br>{assinatura}"
+                    )
+                    alt.attach(MIMEText(html_body, "html", "utf-8"))
+                    outer.attach(alt)
+                else:
+                    outer.attach(MIMEText(corpo, "plain", "utf-8"))
+
+                _montar_anexos(outer, anexos)
+                server.sendmail(user, dest["email"], outer.as_string())
                 enviados += 1
             except Exception as e:
                 erros.append(f"{dest.get('email')}: {e}")

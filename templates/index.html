@@ -5,17 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hevile — Campanhas</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f4f6f9; color: #333; }
+body { font-family: 'DM Sans', sans-serif; background: #EBEBEB; color: #333; }
 
 header {
-  background: #1a73e8;
+  background: #3D6B8A;
   color: white;
   padding: 16px 32px;
   display: flex;
   align-items: center;
+  border-bottom: 4px solid #F15A24;
 }
-header h1 { font-size: 1.3rem; font-weight: 700; flex: 1; }
+header .hv-logo { height: 38px; width: auto; display: block; color: #FFFFFF; }
+header .hv-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.15rem;
+  border-left: 2px solid rgba(255,255,255,.3); padding-left: 16px; margin-left: 16px; flex: 1; }
+header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 700; flex: 1; }
 header .info-rem { text-align: right; font-size: .82rem; line-height: 1.7; opacity: .93; }
 
 .stats {
@@ -25,14 +31,15 @@ header .info-rem { text-align: right; font-size: .82rem; line-height: 1.7; opaci
 }
 .stat-card {
   background: white;
-  border-radius: 10px;
+  border: 1px solid #E4E4E4;
+  border-top: 4px solid #F15A24;
+  border-radius: 4px;
   padding: 14px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.08);
   flex: 1;
   text-align: center;
 }
-.stat-card .num   { font-size: 1.8rem; font-weight: 700; color: #1a73e8; }
-.stat-card .label { font-size: .78rem; color: #777; margin-top: 2px; }
+.stat-card .num   { font-family: 'Barlow Condensed', sans-serif; font-size: 2.2rem; font-weight: 800; color: #3D6B8A; line-height: 1; }
+.stat-card .label { font-size: .78rem; color: #6B6B6B; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .main {
   display: flex;
@@ -84,13 +91,13 @@ textarea { resize: vertical; min-height: 110px; }
   cursor: text;
   background: white;
 }
-.dest-box:focus-within { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,.15); }
+.dest-box:focus-within { border-color: #3D6B8A; box-shadow: 0 0 0 2px rgba(26,115,232,.15); }
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #e8f0fe;
-  color: #1a73e8;
+  background: #EAF1F6;
+  color: #3D6B8A;
   border-radius: 20px;
   padding: 3px 10px 3px 10px;
   font-size: .82rem;
@@ -101,7 +108,7 @@ textarea { resize: vertical; min-height: 110px; }
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-  color: #1a73e8;
+  color: #3D6B8A;
   opacity: .6;
 }
 .chip .rm:hover { opacity: 1; }
@@ -141,7 +148,7 @@ textarea { resize: vertical; min-height: 110px; }
   justify-content: space-between;
   align-items: center;
 }
-.ac-item:hover, .ac-item.focused { background: #f0f7ff; }
+.ac-item:hover, .ac-item.focused { background: #F4F4F4; }
 .ac-item .ac-nome { font-weight: 600; }
 .ac-item .ac-emp  { font-size: .78rem; color: #888; }
 .ac-badges { display: flex; gap: 4px; }
@@ -152,7 +159,7 @@ textarea { resize: vertical; min-height: 110px; }
   font-weight: 600;
 }
 .ac-badge.wp    { background: #e6f4ea; color: #2d7a4f; }
-.ac-badge.email { background: #e8f0fe; color: #1a73e8; }
+.ac-badge.email { background: #EAF1F6; color: #3D6B8A; }
 
 mark { background: #fff3cd; border-radius: 2px; }
 
@@ -169,7 +176,7 @@ button {
 }
 button:hover { opacity: .87; }
 .btn-wp    { background: #25D366; color: white; }
-.btn-email { background: #1a73e8; color: white; }
+.btn-email { background: #3D6B8A; color: white; }
 .btn-sec   { background: #f0f0f0; color: #333; }
 .hint { font-size: .76rem; color: #999; margin-top: -8px; margin-bottom: 12px; }
 
@@ -187,7 +194,7 @@ button:hover { opacity: .87; }
 .busca-wrap { position: relative; flex: 2; min-width: 160px; }
 .busca-wrap input { padding-left: 32px; margin: 0; }
 .busca-wrap .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
-.btn-novo { width: auto; padding: 8px 14px; font-size: .85rem; margin: 0; background: #1a73e8; color: white; border-radius: 6px; white-space: nowrap; }
+.btn-novo { width: auto; padding: 8px 14px; font-size: .85rem; margin: 0; background: #F15A24; color: white; border-radius: 4px; white-space: nowrap; }
 
 .info-bar {
   display: flex;
@@ -200,7 +207,7 @@ button:hover { opacity: .87; }
 .tabela-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: .86rem; }
 th {
-  background: #f8f9fa;
+  background: #F4F4F4;
   text-align: left;
   padding: 9px 12px;
   border-bottom: 2px solid #e0e0e0;
@@ -210,7 +217,7 @@ th {
   letter-spacing: .4px;
 }
 td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-tr:hover td { background: #f9fbff; }
+tr:hover td { background: #F4F4F4; }
 
 .badge {
   display: inline-block;
@@ -220,7 +227,7 @@ tr:hover td { background: #f9fbff; }
   font-weight: 600;
 }
 .badge-ativo       { background: #e6f4ea; color: #2d7a4f; }
-.badge-novo        { background: #e8f0fe; color: #1a73e8; }
+.badge-novo        { background: #EAF1F6; color: #3D6B8A; }
 .badge-reconquista { background: #fce8e6; color: #c5221f; }
 .badge-default     { background: #f0f0f0; color: #666; }
 
@@ -236,7 +243,7 @@ tr:hover td { background: #f9fbff; }
   padding: 9px 20px;
   border: 1px solid #e0e0e0;
   border-bottom: none;
-  background: #f0f2f5;
+  background: #E4E4E4;
   border-radius: 8px 8px 0 0;
   font-size: .88rem;
   font-weight: 600;
@@ -244,8 +251,8 @@ tr:hover td { background: #f9fbff; }
   color: #888;
   transition: background .15s, color .15s;
 }
-.aba.ativa { background: white; color: #1a73e8; border-color: #e0e0e0; }
-.aba:hover:not(.ativa) { background: #e8edf5; color: #555; }
+.aba.ativa { background: white; color: #3D6B8A; border-color: #e0e0e0; box-shadow: inset 0 -3px 0 #F15A24; font-weight: 600; }
+.aba:hover:not(.ativa) { background: #E4E4E4; color: #555; }
 .painel-aba { display: none; }
 .painel-aba.ativo { display: block; }
 
@@ -255,15 +262,15 @@ tr:hover td { background: #f9fbff; }
   border-radius: 10px;
   padding: 32px;
   text-align: center;
-  background: #f8faff;
+  background: #F4F4F4;
   cursor: pointer;
   transition: border-color .2s, background .2s;
   margin-bottom: 14px;
 }
-.drop-zone:hover, .drop-zone.drag { border-color: #1a73e8; background: #eef3ff; }
+.drop-zone:hover, .drop-zone.drag { border-color: #3D6B8A; background: #F4F4F4; }
 .drop-zone .icon { font-size: 2.2rem; margin-bottom: 8px; }
 .drop-zone p { font-size: .88rem; color: #777; }
-.drop-zone strong { color: #1a73e8; }
+.drop-zone strong { color: #3D6B8A; }
 .drop-zone input[type=file] { display: none; }
 
 .resultado-campanha { margin-top: 4px; }
@@ -277,14 +284,14 @@ tr:hover td { background: #f9fbff; }
 .res-card .l { font-size: .75rem; margin-top: 2px; }
 .res-card.encontrado { background: #e6f4ea; color: #2d7a4f; }
 .res-card.nao-encontrado { background: #fce8e6; color: #c5221f; }
-.res-card.total { background: #e8f0fe; color: #1a73e8; }
+.res-card.total { background: #EAF1F6; color: #3D6B8A; }
 
 .match-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 10px; border-bottom: 1px solid #f0f0f0;
   font-size: .85rem;
 }
-.match-row:hover { background: #f9fbff; }
+.match-row:hover { background: #F4F4F4; }
 .match-info { flex: 1; min-width: 0; }
 .match-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .match-emp  { font-size: .77rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -292,11 +299,11 @@ tr:hover td { background: #f9fbff; }
 .score-alto  { background: #e6f4ea; color: #2d7a4f; }
 .score-medio { background: #fef9e7; color: #b8860b; }
 .btn-add-match {
-  background: #e8f0fe; color: #1a73e8; border: none; border-radius: 6px;
+  background: #EAF1F6; color: #3D6B8A; border: none; border-radius: 6px;
   padding: 4px 10px; font-size: .8rem; font-weight: 600; cursor: pointer;
   white-space: nowrap; width: auto; margin: 0;
 }
-.btn-add-match:hover { background: #1a73e8; color: white; }
+.btn-add-match:hover { background: #3D6B8A; color: white; }
 .btn-add-match.adicionado { background: #e6f4ea; color: #2d7a4f; cursor: default; }
 /* Histórico */
 .historico-lista { margin-bottom: 16px; }
@@ -304,10 +311,10 @@ tr:hover td { background: #f9fbff; }
 .hist-item {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 10px; border: 1px solid #e8eef8; border-radius: 8px;
-  margin-bottom: 6px; background: #f8faff; cursor: pointer;
+  margin-bottom: 6px; background: #F4F4F4; cursor: pointer;
   transition: background .15s;
 }
-.hist-item:hover { background: #eef3ff; border-color: #1a73e8; }
+.hist-item:hover { background: #F4F4F4; border-color: #3D6B8A; }
 .hist-icon { font-size: 1.3rem; }
 .hist-info { flex: 1; min-width: 0; }
 .hist-nome { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -315,7 +322,7 @@ tr:hover td { background: #f9fbff; }
 .hist-badges { display: flex; gap: 5px; flex-shrink: 0; }
 .hist-badge { font-size: .72rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
 .hist-badge.enc  { background: #e6f4ea; color: #2d7a4f; }
-.hist-badge.tot  { background: #e8f0fe; color: #1a73e8; }
+.hist-badge.tot  { background: #EAF1F6; color: #3D6B8A; }
 
 .nao-enc-row {
   display: flex; align-items: center; gap: 8px;
@@ -331,7 +338,7 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
   font-size: .85rem; color: #aaa; width: auto; margin: 0;
   border-radius: 4px; transition: background .1s;
 }
-.btn-edit:hover { background: #f0f0f0; color: #1a73e8; }
+.btn-edit:hover { background: #f0f0f0; color: #3D6B8A; }
 
 /* ─── MODAL NOVO CONTATO ─── */
 .modal-bg {
@@ -394,82 +401,12 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
 #toast.sucesso { background: #2d7a4f; }
 #toast.erro    { background: #c5221f; }
 </style>
-
-<!-- ───────────── IDENTIDADE VISUAL HEVILE ───────────── -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
-<style id="hevile-brand">
-:root{
-  --laranja:#ff671f;
-  --laranja-d:#e65c16;
-  --azul:#4f758b;
-  --azul-d:#3f5f72;
-  --azul-tint:#eaf0f3;
-  --escuro:#222d33;
-}
-body{ font-family:'Work Sans', Arial, sans-serif; background:#f2f5f7; color:var(--escuro); }
-
-/* Cabeçalho + logo */
-header{ background:var(--azul); }
-.logo{ flex:1; display:flex; align-items:baseline; gap:10px; }
-.logo-mark{ color:var(--laranja); font-weight:900; font-size:1.7rem; line-height:1; transform:translateY(2px); }
-.logo-word{ font-weight:900; letter-spacing:3px; font-size:1.45rem; }
-.logo-sub{ font-weight:500; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; opacity:.88; }
-
-/* Cartões e títulos */
-.stat-card .num{ color:var(--laranja); }
-.card h3{ color:var(--azul); }
-
-/* Foco de campos */
-.dest-box:focus-within{ border-color:var(--azul); box-shadow:0 0 0 2px rgba(79,117,139,.2); }
-input[type=text]:focus, textarea:focus, select:focus{ border-color:var(--azul); box-shadow:0 0 0 2px rgba(79,117,139,.18); }
-
-/* Chips e autocomplete */
-.chip{ background:var(--azul-tint); color:var(--azul); }
-.chip .rm{ color:var(--azul); }
-.ac-item:hover, .ac-item.focused{ background:var(--azul-tint); }
-.ac-badge.email{ background:var(--azul-tint); color:var(--azul); }
-mark{ background:#ffe1cf; }
-
-/* Botões */
-.btn-email{ background:var(--laranja); }
-.btn-email:hover{ background:var(--laranja-d); opacity:1; }
-.btn-novo{ background:var(--azul); }
-
-/* Tabela */
-tr:hover td{ background:#f3f7f9; }
-.badge-novo{ background:var(--azul-tint); color:var(--azul); }
-.btn-edit:hover{ background:var(--azul-tint); color:var(--azul); }
-
-/* Abas */
-.aba.ativa{ color:var(--laranja); }
-.aba:hover:not(.ativa){ color:var(--azul); }
-
-/* Campanha */
-.drop-zone{ border-color:#cdd9e0; background:#f3f7f9; }
-.drop-zone:hover, .drop-zone.drag{ border-color:var(--laranja); background:#fff3ec; }
-.drop-zone strong{ color:var(--laranja); }
-.res-card.total{ background:var(--azul-tint); color:var(--azul); }
-.btn-add-match{ background:var(--azul-tint); color:var(--azul); }
-.btn-add-match:hover{ background:var(--azul); color:#fff; }
-.hist-item{ border-color:#e3ebf0; background:#f3f7f9; }
-.hist-item:hover{ border-color:var(--azul); background:#eaf0f3; }
-.hist-badge.tot{ background:var(--azul-tint); color:var(--azul); }
-
-/* Status / config */
-.status-ok{ background:#e6f4ea; color:#2d7a4f; }
-.toggle-pw:hover{ color:var(--azul); }
-</style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <span class="logo-mark">&#187;</span>
-    <span class="logo-word">HEVILE</span>
-    <span class="logo-sub">Campanhas</span>
-  </div>
+  <svg class="hv-logo" viewBox="0 0 410.5 100" xmlns="http://www.w3.org/2000/svg" aria-label="HEVILE"><polygon points="70.4,1.9 53.7,1.9 69.8,42.6 39.5,42.6 19.1,2.5 2.5,2.5 24.1,50.6 1.9,97.5 18.5,97.5 38.3,57.4 71.6,57.4 53.1,97.5 70.4,97.5 93.2,49.4" fill="currentColor"/><polygon points="100.0,1.9 100.0,97.5 161.7,97.5 161.7,82.7 116.7,82.1 117.3,57.4 157.4,56.8 157.4,42.0 117.3,42.0 116.7,17.9 161.1,17.3 161.1,1.9" fill="currentColor"/><polygon points="166.7,1.9 192.6,97.5 220.4,97.5 246.3,1.9 229.0,1.9 206.2,85.8 184.0,1.9" fill="currentColor"/><polygon points="251.9,1.9 251.9,98.1 267.9,98.1 268.5,1.9" fill="currentColor"/><polygon points="277.2,1.9 277.2,97.5 338.9,98.1 338.9,82.7 293.8,81.5 293.8,1.9" fill="currentColor"/><polygon points="345.7,1.9 345.7,97.5 407.4,97.5 407.4,82.7 362.3,82.1 363.0,57.4 403.1,56.8 403.1,42.0 363.6,42.0 362.3,17.9 406.8,17.3 406.8,1.9" fill="currentColor"/></svg>
+  <span class="hv-title">Campanhas</span>
   <div class="info-rem" id="info-rem">
     <div><b id="hdr-nome">{{ nome_remetente }}</b></div>
     <div>📱 <span id="hdr-whatsapp">{{ whatsapp_remetente }}</span> &nbsp;|&nbsp; ✉️ <span id="hdr-email">{{ email_remetente }}</span></div>
@@ -518,8 +455,17 @@ tr:hover td{ background:#f3f7f9; }
       <input type="text" id="assunto" placeholder="Ex: Promoção exclusiva para você!">
 
       <label>Mensagem</label>
-      <textarea id="mensagem" placeholder="Olá {nome}, temos uma oferta especial para você..."></textarea>
-      <p class="hint">Use <b>{nome}</b> para personalizar com o nome do contato.</p>
+      <textarea id="mensagem" placeholder="Olá, temos uma oferta especial para você..."></textarea>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.82rem;color:#444;margin:2px 0 10px;cursor:pointer">
+        <input type="checkbox" id="chk-personalizar" checked style="width:15px;height:15px;margin:0">
+        Inserir o nome do contato automaticamente
+      </label>
+      <p class="hint">Ex.: <i>"Olá, ..."</i> vira <i>"Olá Alice, ..."</i> para cada contato. Você também pode usar <b>{nome}</b> onde quiser o nome.</p>
+
+      <input type="file" id="anexos-input" multiple style="display:none" onchange="adicionarAnexos(this.files)">
+      <button type="button" class="btn-sec" onclick="document.getElementById('anexos-input').click()" style="width:auto;margin:0 0 4px;padding:6px 12px;font-size:.82rem">📎 Anexar imagem/arquivo</button>
+      <span style="font-size:.72rem;color:#888;margin-left:8px">só vai no e-mail</span>
+      <div id="lista-anexos" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px"></div>
 
       <button class="btn-wp"    onclick="enviarWhatsApp()">💬 Enviar via WhatsApp</button>
       <button class="btn-email" onclick="enviarEmail()">📧 Enviar via E-mail</button>
@@ -557,7 +503,7 @@ tr:hover td{ background:#f3f7f9; }
       <div class="info-bar">
         <span>
           <span id="info-count">Carregando...</span>
-          <button id="btn-recarregar" onclick="carregarContatos()" style="display:none;width:auto;margin:0 0 0 8px;padding:3px 10px;font-size:.78rem;background:#1a73e8;color:white;border-radius:6px">🔄 Recarregar</button>
+          <button id="btn-recarregar" onclick="carregarContatos()" style="display:none;width:auto;margin:0 0 0 8px;padding:3px 10px;font-size:.78rem;background:#3D6B8A;color:white;border-radius:6px">🔄 Recarregar</button>
         </span>
         <span id="info-sel">0 selecionados</span>
       </div>
@@ -600,7 +546,7 @@ tr:hover td{ background:#f3f7f9; }
         <input type="file" id="file-campanha" accept=".xlsx,.xls,.csv" onchange="onFileSelect(event)">
       </div>
 
-      <div id="camp-loading" style="display:none;text-align:center;padding:20px;color:#1a73e8;font-size:.9rem">
+      <div id="camp-loading" style="display:none;text-align:center;padding:20px;color:#3D6B8A;font-size:.9rem">
         ⏳ Cruzando dados...
       </div>
 
@@ -692,6 +638,14 @@ tr:hover td{ background:#f3f7f9; }
       <div id="cfg-status" class="status-email status-none">● Status não verificado</div>
 
       <button onclick="testarEmail()" class="btn-sec" style="margin-bottom:8px">🔌 Testar conexão</button>
+    </div>
+
+    <div class="cfg-section">
+      <h4>✍️ Assinatura de e-mail</h4>
+      <p class="smtp-info">Cole aqui a sua assinatura do Outlook (Ctrl+C no Outlook → Ctrl+V aqui). Ela entra no rodapé de todo e-mail enviado pelo sistema.</p>
+      <div id="cfg-assinatura" contenteditable="true"
+           style="border:1px solid #ddd;border-radius:6px;padding:10px;min-height:90px;background:white;font-size:.9rem;overflow:auto;max-height:200px"></div>
+      <button type="button" class="btn-sec" onclick="document.getElementById('cfg-assinatura').innerHTML=''" style="width:auto;margin-top:8px;padding:5px 12px;font-size:.8rem">🧹 Limpar assinatura</button>
     </div>
 
     <div class="cfg-section">
@@ -817,6 +771,7 @@ tr:hover td{ background:#f3f7f9; }
 let todosContatos = [];
 let listaVisivelTabela = [];
 let destinatarios = []; // chips selecionados no painel de mensagem
+let anexos = [];        // anexos do e-mail: {filename, mimetype, b64, size}
 let acFocused = -1;
 
 // ──────────────────────────────────────────────
@@ -1031,7 +986,30 @@ document.addEventListener('click', e => {
 // ENVIO
 // ──────────────────────────────────────────────
 function getMensagem(nome) {
-  return document.getElementById('mensagem').value.replace(/{nome}/g, nome);
+  let texto = document.getElementById('mensagem').value;
+  const nomeLimpo = (nome || '').trim();
+
+  // 1) Se a pessoa usou {nome} explicitamente, substitui (controle total)
+  if (/\{nome\}/i.test(texto)) {
+    return texto.replace(/\{nome\}/gi, nomeLimpo);
+  }
+
+  // 2) Inserção automática (se a opção estiver marcada)
+  const auto = document.getElementById('chk-personalizar').checked;
+  if (!auto || !nomeLimpo) return texto;
+
+  // Detecta saudação no início: olá, ola, oi, bom dia, boa tarde, boa noite, e aí
+  const saud = /^(\s*)(olá|ola|oi|bom dia|boa tarde|boa noite|e a[íi])(\s*,)?(\s*)/i;
+  const m = texto.match(saud);
+  if (m) {
+    const espaco = m[1] || '', palavra = m[2], virgula = m[3] || '', depois = m[4] || '';
+    const resto = texto.slice(m[0].length);
+    // Insere o nome logo após a saudação, antes da vírgula
+    return `${espaco}${palavra} ${nomeLimpo},${depois || ' '}${resto}`;
+  }
+
+  // Sem saudação reconhecida: começa com "Nome, ..."
+  return `${nomeLimpo}, ${texto}`;
 }
 
 function toast(msg, tipo = '') {
@@ -1048,27 +1026,36 @@ async function enviarWhatsApp() {
   const mensagem = document.getElementById('mensagem').value;
   if (!mensagem.trim()) { toast('Escreva a mensagem antes de enviar.', 'erro'); return; }
 
-  // O backend decide o provedor (hoje wa.me; futuramente Cloud API do Meta).
-  const res = await fetch('/enviar_whatsapp', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mensagem, destinatarios: alvos.map(c => ({ whatsapp: c.whatsapp, nome: c.nome })) })
-  });
-  const data = await res.json();
-  if (!data.ok) { toast('❌ ' + (data.erro || 'Erro ao preparar envio.'), 'erro'); return; }
-
-  if (data.modo === 'wa.me') {
-    // abre em lotes de 10 para o navegador não bloquear os pop-ups
-    let abertos = 0;
-    for (const item of data.links) {
-      window.open(item.link, '_blank');
-      if (++abertos >= 10) break;
-    }
-    const rest = data.links.length - abertos;
-    toast(`✅ ${abertos} WhatsApp(s) aberto(s)!${rest > 0 ? ` Repita para os demais ${rest}.` : ''}`, 'sucesso');
-  } else {
-    toast(`✅ ${data.enviados || 0} mensagem(ns) enviada(s)!`, 'sucesso');
+  let abertos = 0;
+  for (const c of alvos) {
+    window.open(`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(getMensagem(c.nome))}`, '_blank');
+    abertos++;
+    if (abertos >= 10) break;
   }
+  const rest = alvos.length - abertos;
+  const notaAnexo = anexos.length ? ' · anexos vão só no e-mail' : '';
+  toast(`✅ ${abertos} WhatsApp(s) aberto(s)!${rest > 0 ? ` Repita para os demais ${rest}.` : ''}${notaAnexo}`, 'sucesso');
+}
+
+// ── ANEXOS (apenas e-mail; wa.me não suporta mídia) ──
+function adicionarAnexos(fileList) {
+  Array.from(fileList).forEach(f => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const b64 = String(reader.result).split(',')[1] || '';
+      anexos.push({ filename: f.name, mimetype: f.type, b64, size: f.size });
+      renderAnexos();
+    };
+    reader.readAsDataURL(f);
+  });
+  document.getElementById('anexos-input').value = '';
+}
+function removerAnexo(i) { anexos.splice(i, 1); renderAnexos(); }
+function renderAnexos() {
+  const box = document.getElementById('lista-anexos');
+  box.innerHTML = anexos.map((a, i) =>
+    `<span class="chip">📎 ${a.filename} <span style="font-weight:400;opacity:.7">(${(a.size/1024).toFixed(0)} KB)</span> <span class="rm" onclick="removerAnexo(${i})">×</span></span>`
+  ).join('');
 }
 
 async function enviarEmail() {
@@ -1078,11 +1065,19 @@ async function enviarEmail() {
   const mensagem = document.getElementById('mensagem').value;
   if (!mensagem.trim()) { toast('Escreva a mensagem antes de enviar.', 'erro'); return; }
 
+  // Limite defensivo de tamanho (Gmail ~25MB; ficamos abaixo).
+  const totalBytes = anexos.reduce((s, a) => s + (a.b64.length * 3 / 4), 0);
+  if (totalBytes > 18 * 1024 * 1024) { toast('Anexos muito grandes (máx. ~18 MB no total).', 'erro'); return; }
+
   toast('Enviando e-mails...', '');
   const res = await fetch('/enviar_email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ assunto, mensagem, destinatarios: alvos.map(c => ({ email: c.email, nome: c.nome })) })
+    body: JSON.stringify({
+      assunto, mensagem,
+      destinatarios: alvos.map(c => ({ email: c.email, nome: c.nome, corpo: getMensagem(c.nome) })),
+      anexos: anexos.map(a => ({ filename: a.filename, mimetype: a.mimetype, b64: a.b64 }))
+    })
   });
   const data = await res.json();
   if (data.ok) {
@@ -1246,6 +1241,8 @@ function renderResultado(data) {
     const div = document.createElement('div');
     div.className = 'match-row';
     div.id = 'match-row-' + i;
+    div.style.cursor = 'pointer';
+    div.title = 'Clique para adicionar ao campo Para';
     const scoreClass = m.score >= 90 ? 'score-alto' : 'score-medio';
     const scoreLabel = m.score >= 90 ? `✅ ${m.score}% match` : `⚠️ ${m.score}% match`;
     div.innerHTML = `
@@ -1254,8 +1251,9 @@ function renderResultado(data) {
         <div class="match-emp">${m.contato.empresa || ''} · na planilha: <i>${m.nome_planilha}</i></div>
       </div>
       <span class="match-score ${scoreClass}">${scoreLabel}</span>
-      <button class="btn-add-match" id="btn-match-${i}" onclick="adicionarMatch(${i})">➕ Para</button>
+      <button class="btn-add-match" id="btn-match-${i}">➕ Para</button>
     `;
+    div.addEventListener('click', () => adicionarMatch(i));
     lm.appendChild(div);
   });
 
@@ -1279,11 +1277,13 @@ function renderResultado(data) {
 function adicionarMatch(i) {
   const m = matchesGlobais[i];
   const btn = document.getElementById('btn-match-' + i);
+  if (btn && btn.disabled) return; // já adicionado
   adicionarDestinatarioObj(m.contato);
-  btn.textContent  = '✅ Adicionado';
-  btn.className    = 'btn-add-match adicionado';
-  btn.disabled     = true;
-  trocarAba('contatos'); // opcional: mantém na aba ou vai pro Para
+  if (btn) {
+    btn.textContent = '✅ Adicionado';
+    btn.className   = 'btn-add-match adicionado';
+    btn.disabled    = true;
+  }
 }
 
 function adicionarTodosMatch() {
@@ -1368,6 +1368,7 @@ async function abrirConfig() {
   document.getElementById('cfg-whatsapp').value = cfg.whatsapp || '';
   document.getElementById('cfg-email').value    = cfg.email    || '';
   document.getElementById('cfg-senha').value    = cfg.senha    || '';
+  document.getElementById('cfg-assinatura').innerHTML = cfg.assinatura || '';
   const prov = cfg.provedor || 'outlook';
   document.getElementById('cfg-provedor').value = prov;
   atualizarSmtp();
@@ -1414,6 +1415,7 @@ function getConfigPayload() {
     provedor:  prov,
     smtp_host: prov === 'custom' ? document.getElementById('cfg-smtp-host').value.trim() : preset.host,
     smtp_port: prov === 'custom' ? document.getElementById('cfg-smtp-port').value.trim() : preset.port,
+    assinatura: document.getElementById('cfg-assinatura').innerHTML,
   };
 }
 
@@ -1424,8 +1426,9 @@ async function salvarConfig() {
   const data = await res.json();
   if (data.ok) {
     toast('✅ Configurações salvas!', 'sucesso');
-    document.getElementById('hdr-nome').textContent  = payload.nome;
-    document.getElementById('hdr-email').textContent = payload.email;
+    document.getElementById('hdr-nome').textContent     = payload.nome;
+    document.getElementById('hdr-email').textContent    = payload.email;
+    document.getElementById('hdr-whatsapp').textContent = payload.whatsapp;
     fecharConfig();
   } else {
     toast('❌ ' + data.erro, 'erro');

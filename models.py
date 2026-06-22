@@ -34,6 +34,8 @@ class Usuario(Base, UserMixin):
     provedor: Mapped[str] = mapped_column(String(20), default="outlook")
     smtp_host: Mapped[str] = mapped_column(String(120), default="smtp.office365.com")
     smtp_port: Mapped[int] = mapped_column(Integer, default=587)
+    # Assinatura do e-mail (HTML), colada pelo usuário a partir do Outlook.
+    assinatura: Mapped[str | None] = mapped_column(Text)
 
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
 

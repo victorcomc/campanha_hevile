@@ -45,3 +45,6 @@ def _migrar():
             conn.execute(text(
                 f"ALTER TABLE usuarios ADD COLUMN senha_temporaria BOOLEAN NOT NULL DEFAULT {falso}"
             ))
+    if "assinatura" not in cols:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE usuarios ADD COLUMN assinatura TEXT"))
