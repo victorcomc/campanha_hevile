@@ -22,6 +22,8 @@ class Usuario(Base, UserMixin):
     email: Mapped[str] = mapped_column(String(180), unique=True, nullable=False, index=True)
     senha_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    # True = senha definida por admin; força a pessoa a trocar no próximo login.
+    senha_temporaria: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Identidade de remetente (cabeçalho do app + assinatura)
     whatsapp_remetente: Mapped[str | None] = mapped_column(String(40))

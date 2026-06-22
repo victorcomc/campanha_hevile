@@ -154,6 +154,7 @@ def criar_usuario(nome, email, senha, is_admin=False):
     u = Usuario(
         nome=nome, email=email, senha_hash=generate_password_hash(senha),
         is_admin=is_admin, email_remetente=email,
+        senha_temporaria=True,  # a pessoa define a própria senha no 1º login
     )
     s.add(u)
     s.commit()

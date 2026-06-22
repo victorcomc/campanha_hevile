@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hevile — Trocar senha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{ --laranja:#ff671f; --azul:#4f758b; --escuro:#222d33; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Work Sans', Arial, sans-serif;
+  display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  background: repeating-linear-gradient(135deg,
+    var(--laranja) 0 18px, var(--azul) 18px 36px);
+}
+.box {
+  background: white; border-radius: 16px; padding: 38px 36px; width: 400px; max-width: 92vw;
+  box-shadow: 0 14px 50px rgba(0,0,0,.3);
+}
+.brand { display: flex; align-items: baseline; gap: 9px; margin-bottom: 6px; }
+.brand .mark { color: var(--laranja); font-weight: 900; font-size: 1.5rem; line-height: 1; }
+.brand .word { color: var(--escuro); font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; }
+h1 { font-size: 1.15rem; margin-bottom: 4px; color: var(--escuro); }
+p.sub { font-size: .85rem; color: #888; margin-bottom: 20px; }
+label { display: block; font-size: .85rem; color: #444; margin-bottom: 5px; margin-top: 12px; font-weight: 500; }
+input {
+  width: 100%; padding: 11px 13px; border: 1px solid #ddd; border-radius: 8px; font-size: .95rem;
+  font-family: 'Work Sans', Arial, sans-serif;
+}
+input:focus { outline: none; border-color: var(--azul); box-shadow: 0 0 0 2px rgba(79,117,139,.2); }
+.btns { display: flex; gap: 10px; margin-top: 24px; }
+button {
+  flex: 1; padding: 12px; border: none; border-radius: 8px;
+  background: var(--laranja); color: white; font-size: .96rem; font-weight: 700; cursor: pointer;
+  font-family: 'Work Sans', Arial, sans-serif; transition: background .15s;
+}
+button:hover { background: #e65c16; }
+a.cancel {
+  flex: 1; padding: 12px; border-radius: 8px; background: #f0f0f0; color: #333;
+  font-size: .96rem; font-weight: 700; text-align: center; text-decoration: none;
+}
+.erro { background: #fce8e6; color: #c5221f; font-size: .85rem; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; }
+.aviso { background: #fff3ec; color: var(--laranja); font-size: .85rem; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="brand"><span class="mark">&#187;</span><span class="word">HEVILE</span></div>
+    <h1>🔑 Trocar senha</h1>
+    <p class="sub">Defina uma senha pessoal e segura.</p>
+
+    {% if forcado %}<div class="aviso">⚠️ Sua senha foi definida por um administrador. Crie a sua própria senha para continuar.</div>{% endif %}
+    {% if erro %}<div class="erro">❌ {{ erro }}</div>{% endif %}
+
+    <form method="POST" action="/trocar_senha">
+      {% if not forcado %}
+      <label>Senha atual</label>
+      <input type="password" name="atual" placeholder="••••••••" required>
+      {% endif %}
+      <label>Nova senha</label>
+      <input type="password" name="nova" placeholder="mínimo 6 caracteres" required autofocus>
+      <label>Confirmar nova senha</label>
+      <input type="password" name="conf" placeholder="repita a nova senha" required>
+      <div class="btns">
+        {% if not forcado %}<a class="cancel" href="/">Cancelar</a>{% endif %}
+        <button type="submit">Salvar senha</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

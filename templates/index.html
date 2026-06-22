@@ -394,11 +394,82 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
 #toast.sucesso { background: #2d7a4f; }
 #toast.erro    { background: #c5221f; }
 </style>
+
+<!-- ───────────── IDENTIDADE VISUAL HEVILE ───────────── -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style id="hevile-brand">
+:root{
+  --laranja:#ff671f;
+  --laranja-d:#e65c16;
+  --azul:#4f758b;
+  --azul-d:#3f5f72;
+  --azul-tint:#eaf0f3;
+  --escuro:#222d33;
+}
+body{ font-family:'Work Sans', Arial, sans-serif; background:#f2f5f7; color:var(--escuro); }
+
+/* Cabeçalho + logo */
+header{ background:var(--azul); }
+.logo{ flex:1; display:flex; align-items:baseline; gap:10px; }
+.logo-mark{ color:var(--laranja); font-weight:900; font-size:1.7rem; line-height:1; transform:translateY(2px); }
+.logo-word{ font-weight:900; letter-spacing:3px; font-size:1.45rem; }
+.logo-sub{ font-weight:500; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; opacity:.88; }
+
+/* Cartões e títulos */
+.stat-card .num{ color:var(--laranja); }
+.card h3{ color:var(--azul); }
+
+/* Foco de campos */
+.dest-box:focus-within{ border-color:var(--azul); box-shadow:0 0 0 2px rgba(79,117,139,.2); }
+input[type=text]:focus, textarea:focus, select:focus{ border-color:var(--azul); box-shadow:0 0 0 2px rgba(79,117,139,.18); }
+
+/* Chips e autocomplete */
+.chip{ background:var(--azul-tint); color:var(--azul); }
+.chip .rm{ color:var(--azul); }
+.ac-item:hover, .ac-item.focused{ background:var(--azul-tint); }
+.ac-badge.email{ background:var(--azul-tint); color:var(--azul); }
+mark{ background:#ffe1cf; }
+
+/* Botões */
+.btn-email{ background:var(--laranja); }
+.btn-email:hover{ background:var(--laranja-d); opacity:1; }
+.btn-novo{ background:var(--azul); }
+
+/* Tabela */
+tr:hover td{ background:#f3f7f9; }
+.badge-novo{ background:var(--azul-tint); color:var(--azul); }
+.btn-edit:hover{ background:var(--azul-tint); color:var(--azul); }
+
+/* Abas */
+.aba.ativa{ color:var(--laranja); }
+.aba:hover:not(.ativa){ color:var(--azul); }
+
+/* Campanha */
+.drop-zone{ border-color:#cdd9e0; background:#f3f7f9; }
+.drop-zone:hover, .drop-zone.drag{ border-color:var(--laranja); background:#fff3ec; }
+.drop-zone strong{ color:var(--laranja); }
+.res-card.total{ background:var(--azul-tint); color:var(--azul); }
+.btn-add-match{ background:var(--azul-tint); color:var(--azul); }
+.btn-add-match:hover{ background:var(--azul); color:#fff; }
+.hist-item{ border-color:#e3ebf0; background:#f3f7f9; }
+.hist-item:hover{ border-color:var(--azul); background:#eaf0f3; }
+.hist-badge.tot{ background:var(--azul-tint); color:var(--azul); }
+
+/* Status / config */
+.status-ok{ background:#e6f4ea; color:#2d7a4f; }
+.toggle-pw:hover{ color:var(--azul); }
+</style>
 </head>
 <body>
 
 <header>
-  <h1>📣 Hevile — Campanhas</h1>
+  <div class="logo">
+    <span class="logo-mark">&#187;</span>
+    <span class="logo-word">HEVILE</span>
+    <span class="logo-sub">Campanhas</span>
+  </div>
   <div class="info-rem" id="info-rem">
     <div><b id="hdr-nome">{{ nome_remetente }}</b></div>
     <div>📱 <span id="hdr-whatsapp">{{ whatsapp_remetente }}</span> &nbsp;|&nbsp; ✉️ <span id="hdr-email">{{ email_remetente }}</span></div>
@@ -621,6 +692,11 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
       <div id="cfg-status" class="status-email status-none">● Status não verificado</div>
 
       <button onclick="testarEmail()" class="btn-sec" style="margin-bottom:8px">🔌 Testar conexão</button>
+    </div>
+
+    <div class="cfg-section">
+      <h4>🔒 Segurança</h4>
+      <a href="/trocar_senha" class="btn-sec" style="display:block;text-align:center;text-decoration:none;padding:10px;border-radius:6px;color:#333">🔑 Trocar minha senha</a>
     </div>
 
     <div class="modal-btns">

@@ -90,10 +90,37 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/trocar_senha", methods=["GET", "POST"])
+@login_required
+def trocar_senha():
+    forcado = current_user.senha_temporaria
+    if request.method == "POST":
+        atual = request.form.get("atual") or ""
+        nova = request.form.get("nova") or ""
+        conf = request.form.get("conf") or ""
+        # Em troca voluntária exige a senha atual; na forçada a pessoa acabou de logar com ela.
+        if not forcado and not check_password_hash(current_user.senha_hash, atual):
+            return render_template("trocar_senha.html", forcado=forcado, erro="Senha atual incorreta."), 401
+        if len(nova) < 6:
+            return render_template("trocar_senha.html", forcado=forcado, erro="A nova senha deve ter pelo menos 6 caracteres."), 400
+        if nova != conf:
+            return render_template("trocar_senha.html", forcado=forcado, erro="As senhas não conferem."), 400
+        s = db()
+        u = s.get(Usuario, current_user.id)
+        u.senha_hash = generate_password_hash(nova)
+        u.senha_temporaria = False
+        s.commit()
+        return redirect(url_for("index"))
+    return render_template("trocar_senha.html", forcado=forcado)
+
+
 # ─────────────────────────── Página principal ───────────────────────────
 @app.route("/")
 @login_required
 def index():
+    # Se a senha foi definida por um admin, obriga a trocar antes de usar o sistema.
+    if current_user.senha_temporaria:
+        return redirect(url_for("trocar_senha"))
     s = db()
     categorias = sorted({
         c[0] for c in s.query(Contato.categoria).distinct() if c[0]
@@ -146,6 +173,7 @@ def criar_usuario():
             nome=nome, email=email,
             senha_hash=generate_password_hash(senha),
             is_admin=is_admin, email_remetente=email,
+            senha_temporaria=True,  # força a pessoa a definir a própria senha no 1º login
         )
         s.add(u)
         s.commit()
@@ -167,6 +195,7 @@ def resetar_senha():
     if not u:
         return jsonify(ok=False, erro="Usuário não encontrado.")
     u.senha_hash = generate_password_hash(nova)
+    u.senha_temporaria = True  # ao admin resetar, a pessoa redefine no próximo login
     s.commit()
     return jsonify(ok=True)
 
