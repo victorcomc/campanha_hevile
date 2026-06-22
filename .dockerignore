@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+.env
+.venv/
+venv/
+*.xlsx
+*.csv
+.git/
+.gitignore
+README.md

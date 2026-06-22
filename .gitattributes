@@ -1,0 +1,5 @@
+# Normaliza quebras de linha: LF no repositório (importante para o container Linux).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.xlsx binary

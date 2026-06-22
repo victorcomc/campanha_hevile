@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hevile — Entrar</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif; background: #1a73e8;
+  display: flex; align-items: center; justify-content: center; min-height: 100vh;
+}
+.box {
+  background: white; border-radius: 14px; padding: 36px 34px; width: 360px; max-width: 92vw;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+}
+.box h1 { font-size: 1.4rem; margin-bottom: 4px; color: #1a73e8; }
+.box p.sub { font-size: .85rem; color: #888; margin-bottom: 22px; }
+label { display: block; font-size: .85rem; color: #444; margin-bottom: 5px; margin-top: 12px; }
+input {
+  width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: .95rem;
+}
+input:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,.15); }
+button {
+  width: 100%; margin-top: 22px; padding: 11px; border: none; border-radius: 8px;
+  background: #1a73e8; color: white; font-size: .95rem; font-weight: 600; cursor: pointer;
+}
+button:hover { opacity: .9; }
+.erro {
+  background: #fce8e6; color: #c5221f; font-size: .85rem; padding: 9px 12px;
+  border-radius: 8px; margin-bottom: 14px;
+}
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>📣 Hevile</h1>
+    <p class="sub">Sistema de Campanhas</p>
+    {% if erro %}<div class="erro">❌ {{ erro }}</div>{% endif %}
+    <form method="POST" action="/login">
+      <label>E-mail</label>
+      <input type="email" name="email" placeholder="seuemail@hevile.com.br" autofocus required>
+      <label>Senha</label>
+      <input type="password" name="senha" placeholder="••••••••" required>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>

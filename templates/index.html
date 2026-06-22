@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hevile — Campanhas</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f6f9; color: #333; }
+
+header {
+  background: #1a73e8;
+  color: white;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+}
+header h1 { font-size: 1.3rem; font-weight: 700; flex: 1; }
+header .info-rem { text-align: right; font-size: .82rem; line-height: 1.7; opacity: .93; }
+
+.stats {
+  display: flex;
+  gap: 14px;
+  padding: 18px 32px 0;
+}
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  flex: 1;
+  text-align: center;
+}
+.stat-card .num   { font-size: 1.8rem; font-weight: 700; color: #1a73e8; }
+.stat-card .label { font-size: .78rem; color: #777; margin-top: 2px; }
+
+.main {
+  display: flex;
+  gap: 20px;
+  padding: 18px 32px 32px;
+}
+
+/* ─── PAINEL ESQUERDO: DISPARAR MENSAGEM ─── */
+.painel-msg { width: 380px; flex-shrink: 0; }
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: .88rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 14px;
+}
+
+label { display: block; font-size: .85rem; color: #444; margin-bottom: 5px; }
+
+input[type=text], textarea, select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: .9rem;
+  font-family: Arial, sans-serif;
+  margin-bottom: 12px;
+}
+textarea { resize: vertical; min-height: 110px; }
+
+/* Destinatários */
+.dest-box {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-height: 42px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+  cursor: text;
+  background: white;
+}
+.dest-box:focus-within { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,.15); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  border-radius: 20px;
+  padding: 3px 10px 3px 10px;
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip .rm {
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  color: #1a73e8;
+  opacity: .6;
+}
+.chip .rm:hover { opacity: 1; }
+.dest-input {
+  border: none;
+  outline: none;
+  font-size: .88rem;
+  min-width: 140px;
+  flex: 1;
+  padding: 2px 4px;
+  font-family: Arial, sans-serif;
+}
+
+/* Autocomplete */
+.autocomplete-wrap { position: relative; margin-bottom: 12px; }
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  display: none;
+}
+.autocomplete-list.ativo { display: block; }
+.ac-item {
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: .88rem;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ac-item:hover, .ac-item.focused { background: #f0f7ff; }
+.ac-item .ac-nome { font-weight: 600; }
+.ac-item .ac-emp  { font-size: .78rem; color: #888; }
+.ac-badges { display: flex; gap: 4px; }
+.ac-badge {
+  font-size: .7rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.ac-badge.wp    { background: #e6f4ea; color: #2d7a4f; }
+.ac-badge.email { background: #e8f0fe; color: #1a73e8; }
+
+mark { background: #fff3cd; border-radius: 2px; }
+
+button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: .93rem;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+  transition: opacity .15s;
+}
+button:hover { opacity: .87; }
+.btn-wp    { background: #25D366; color: white; }
+.btn-email { background: #1a73e8; color: white; }
+.btn-sec   { background: #f0f0f0; color: #333; }
+.hint { font-size: .76rem; color: #999; margin-top: -8px; margin-bottom: 12px; }
+
+/* ─── PAINEL DIREITO: LISTA DE CONTATOS ─── */
+.painel-lista { flex: 1; }
+
+.barra-lista {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.barra-lista select { margin: 0; flex: 1; min-width: 120px; }
+.busca-wrap { position: relative; flex: 2; min-width: 160px; }
+.busca-wrap input { padding-left: 32px; margin: 0; }
+.busca-wrap .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
+.btn-novo { width: auto; padding: 8px 14px; font-size: .85rem; margin: 0; background: #1a73e8; color: white; border-radius: 6px; white-space: nowrap; }
+
+.info-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: .83rem;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+.tabela-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+th {
+  background: #f8f9fa;
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 2px solid #e0e0e0;
+  color: #555;
+  font-size: .76rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+tr:hover td { background: #f9fbff; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: .73rem;
+  font-weight: 600;
+}
+.badge-ativo       { background: #e6f4ea; color: #2d7a4f; }
+.badge-novo        { background: #e8f0fe; color: #1a73e8; }
+.badge-reconquista { background: #fce8e6; color: #c5221f; }
+.badge-default     { background: #f0f0f0; color: #666; }
+
+/* ─── ABAS ─── */
+.abas {
+  display: flex;
+  gap: 2px;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 1;
+}
+.aba {
+  padding: 9px 20px;
+  border: 1px solid #e0e0e0;
+  border-bottom: none;
+  background: #f0f2f5;
+  border-radius: 8px 8px 0 0;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #888;
+  transition: background .15s, color .15s;
+}
+.aba.ativa { background: white; color: #1a73e8; border-color: #e0e0e0; }
+.aba:hover:not(.ativa) { background: #e8edf5; color: #555; }
+.painel-aba { display: none; }
+.painel-aba.ativo { display: block; }
+
+/* ─── CAMPANHA ─── */
+.drop-zone {
+  border: 2px dashed #c5d5f0;
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  background: #f8faff;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  margin-bottom: 14px;
+}
+.drop-zone:hover, .drop-zone.drag { border-color: #1a73e8; background: #eef3ff; }
+.drop-zone .icon { font-size: 2.2rem; margin-bottom: 8px; }
+.drop-zone p { font-size: .88rem; color: #777; }
+.drop-zone strong { color: #1a73e8; }
+.drop-zone input[type=file] { display: none; }
+
+.resultado-campanha { margin-top: 4px; }
+.res-resumo {
+  display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.res-card {
+  flex: 1; min-width: 100px; border-radius: 8px; padding: 10px 14px; text-align: center;
+}
+.res-card .n { font-size: 1.6rem; font-weight: 700; }
+.res-card .l { font-size: .75rem; margin-top: 2px; }
+.res-card.encontrado { background: #e6f4ea; color: #2d7a4f; }
+.res-card.nao-encontrado { background: #fce8e6; color: #c5221f; }
+.res-card.total { background: #e8f0fe; color: #1a73e8; }
+
+.match-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-bottom: 1px solid #f0f0f0;
+  font-size: .85rem;
+}
+.match-row:hover { background: #f9fbff; }
+.match-info { flex: 1; min-width: 0; }
+.match-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.match-emp  { font-size: .77rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.match-score { font-size: .75rem; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.score-alto  { background: #e6f4ea; color: #2d7a4f; }
+.score-medio { background: #fef9e7; color: #b8860b; }
+.btn-add-match {
+  background: #e8f0fe; color: #1a73e8; border: none; border-radius: 6px;
+  padding: 4px 10px; font-size: .8rem; font-weight: 600; cursor: pointer;
+  white-space: nowrap; width: auto; margin: 0;
+}
+.btn-add-match:hover { background: #1a73e8; color: white; }
+.btn-add-match.adicionado { background: #e6f4ea; color: #2d7a4f; cursor: default; }
+/* Histórico */
+.historico-lista { margin-bottom: 16px; }
+.historico-lista h4 { font-size: .8rem; color: #888; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+.hist-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border: 1px solid #e8eef8; border-radius: 8px;
+  margin-bottom: 6px; background: #f8faff; cursor: pointer;
+  transition: background .15s;
+}
+.hist-item:hover { background: #eef3ff; border-color: #1a73e8; }
+.hist-icon { font-size: 1.3rem; }
+.hist-info { flex: 1; min-width: 0; }
+.hist-nome { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-meta { font-size: .75rem; color: #888; margin-top: 1px; }
+.hist-badges { display: flex; gap: 5px; flex-shrink: 0; }
+.hist-badge { font-size: .72rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.hist-badge.enc  { background: #e6f4ea; color: #2d7a4f; }
+.hist-badge.tot  { background: #e8f0fe; color: #1a73e8; }
+
+.nao-enc-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-bottom: 1px solid #f9f0f0;
+  font-size: .82rem; color: #c5221f;
+}
+.nao-enc-row span { flex: 1; }
+
+.check-col { width: 32px; }
+input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
+.btn-edit {
+  background: none; border: none; cursor: pointer; padding: 2px 6px;
+  font-size: .85rem; color: #aaa; width: auto; margin: 0;
+  border-radius: 4px; transition: background .1s;
+}
+.btn-edit:hover { background: #f0f0f0; color: #1a73e8; }
+
+/* ─── MODAL NOVO CONTATO ─── */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-bg.ativo { display: flex; }
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,.22);
+}
+.modal h2 { font-size: 1.05rem; margin-bottom: 18px; }
+.modal .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 4px; }
+.modal-btns button { flex: 1; margin: 0; }
+
+/* ─── MODAL CONFIGURAÇÕES ─── */
+.cfg-section { border-top: 1px solid #f0f0f0; padding-top: 14px; margin-top: 6px; }
+.cfg-section h4 { font-size: .8rem; color: #888; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 10px; }
+.smtp-info { font-size: .78rem; color: #999; margin-top: -8px; margin-bottom: 10px; }
+.input-pw-wrap { position: relative; margin-bottom: 12px; }
+.input-pw-wrap input { margin-bottom: 0; padding-right: 36px; }
+.toggle-pw {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  cursor: pointer; font-size: .9rem; color: #aaa; user-select: none;
+}
+.toggle-pw:hover { color: #555; }
+.status-email {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .8rem; padding: 4px 10px; border-radius: 20px;
+  margin-bottom: 12px;
+}
+.status-ok  { background: #e6f4ea; color: #2d7a4f; }
+.status-err { background: #fce8e6; color: #c5221f; }
+.status-none { background: #f0f0f0; color: #888; }
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 26px; right: 26px;
+  background: #323232;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: .88rem;
+  display: none;
+  z-index: 2000;
+  max-width: 360px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+#toast.sucesso { background: #2d7a4f; }
+#toast.erro    { background: #c5221f; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📣 Hevile — Campanhas</h1>
+  <div class="info-rem" id="info-rem">
+    <div><b id="hdr-nome">{{ nome_remetente }}</b></div>
+    <div>📱 <span id="hdr-whatsapp">{{ whatsapp_remetente }}</span> &nbsp;|&nbsp; ✉️ <span id="hdr-email">{{ email_remetente }}</span></div>
+  </div>
+  <button onclick="abrirConfig()" style="margin-left:18px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;cursor:pointer;width:auto;margin-bottom:0" title="Configurações de e-mail">⚙️ Config</button>
+  <a href="/logout" style="margin-left:8px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;text-decoration:none;display:inline-block" title="Sair">🚪 Sair</a>
+</header>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="num">{{ total }}</div>
+    <div class="label">Total de contatos</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" id="stat-wp">{{ com_whatsapp }}</div>
+    <div class="label">Com WhatsApp</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" id="stat-email">{{ com_email }}</div>
+    <div class="label">Com e-mail</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ── DISPARAR MENSAGEM ── -->
+  <div class="painel-msg">
+    <div class="card">
+      <h3>💬 Disparar Mensagem</h3>
+
+      <label>Para (busque pelo nome ou empresa)</label>
+      <div class="autocomplete-wrap">
+        <div class="dest-box" id="dest-box" onclick="document.getElementById('dest-input').focus()">
+          <input class="dest-input" id="dest-input" type="text"
+            placeholder="Digite um nome ou clique na tabela →"
+            onkeydown="acKeyDown(event)"
+            autocomplete="off">
+        </div>
+        <div class="autocomplete-list" id="ac-list"></div>
+      </div>
+
+      <label>Assunto <span style="font-size:.75rem;color:#aaa">(só para e-mail)</span></label>
+      <input type="text" id="assunto" placeholder="Ex: Promoção exclusiva para você!">
+
+      <label>Mensagem</label>
+      <textarea id="mensagem" placeholder="Olá {nome}, temos uma oferta especial para você..."></textarea>
+      <p class="hint">Use <b>{nome}</b> para personalizar com o nome do contato.</p>
+
+      <button class="btn-wp"    onclick="enviarWhatsApp()">💬 Enviar via WhatsApp</button>
+      <button class="btn-email" onclick="enviarEmail()">📧 Enviar via E-mail</button>
+    </div>
+  </div>
+
+  <!-- ── PAINEL DIREITO COM ABAS ── -->
+  <div class="painel-lista">
+
+    <div class="abas">
+      <div class="aba ativa" id="aba-contatos" onclick="trocarAba('contatos')">👥 Contatos</div>
+      <div class="aba"       id="aba-campanha" onclick="trocarAba('campanha')">🎯 Campanha</div>
+    </div>
+
+    <!-- ABA CONTATOS -->
+    <div class="card painel-aba ativo" id="painel-contatos" style="border-radius:0 10px 10px 10px">
+      <div class="barra-lista">
+        <div class="busca-wrap">
+          <span class="ico">🔍</span>
+          <input type="text" id="busca-lista" placeholder="Buscar por nome ou empresa..." oninput="buscarLista()">
+        </div>
+        <select id="sel-categoria" onchange="aplicarFiltros()">
+          <option value="">Todas as categorias</option>
+          {% for cat in categorias %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+        <select id="sel-canal" onchange="aplicarFiltros()">
+          <option value="todos">Todos os canais</option>
+          <option value="whatsapp">Só WhatsApp</option>
+          <option value="email">Só E-mail</option>
+        </select>
+        <button class="btn-novo" onclick="abrirModal()">➕ Novo</button>
+      </div>
+      <div class="info-bar">
+        <span>
+          <span id="info-count">Carregando...</span>
+          <button id="btn-recarregar" onclick="carregarContatos()" style="display:none;width:auto;margin:0 0 0 8px;padding:3px 10px;font-size:.78rem;background:#1a73e8;color:white;border-radius:6px">🔄 Recarregar</button>
+        </span>
+        <span id="info-sel">0 selecionados</span>
+      </div>
+      <div class="tabela-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="check-col"><input type="checkbox" id="check-all" onclick="toggleAll(this)"></th>
+              <th>Nome</th>
+              <th>Empresa</th>
+              <th>Categoria</th>
+              <th>WhatsApp</th>
+              <th>E-mail</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABA CAMPANHA -->
+    <div class="card painel-aba" id="painel-campanha" style="border-radius:0 10px 10px 10px">
+      <h3>🎯 Cruzamento de Campanha</h3>
+      <p style="font-size:.83rem;color:#888;margin-bottom:14px">
+        Suba uma planilha com importadores de uma rota. O sistema cruza com os contatos cadastrados e sugere quem adicionar na mensagem.
+      </p>
+
+      <div class="historico-lista" id="historico-lista" style="display:none">
+        <h4>📁 Planilhas recentes</h4>
+        <div id="historico-items"></div>
+      </div>
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-campanha').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="onDrop(event)">
+        <div class="icon">📂</div>
+        <p><strong>Clique para selecionar</strong> ou arraste a planilha aqui</p>
+        <p style="margin-top:4px;font-size:.76rem">.xlsx, .xls ou .csv</p>
+        <input type="file" id="file-campanha" accept=".xlsx,.xls,.csv" onchange="onFileSelect(event)">
+      </div>
+
+      <div id="camp-loading" style="display:none;text-align:center;padding:20px;color:#1a73e8;font-size:.9rem">
+        ⏳ Cruzando dados...
+      </div>
+
+      <div class="resultado-campanha" id="resultado-campanha" style="display:none">
+        <div class="res-resumo">
+          <div class="res-card total">
+            <div class="n" id="res-total">0</div>
+            <div class="l">Na planilha</div>
+          </div>
+          <div class="res-card encontrado">
+            <div class="n" id="res-enc">0</div>
+            <div class="l">Encontrados</div>
+          </div>
+          <div class="res-card nao-encontrado">
+            <div class="n" id="res-nenc">0</div>
+            <div class="l">Não encontrados</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:.85rem;font-weight:600;color:#333">✅ Contatos encontrados</span>
+          <button onclick="adicionarTodosMatch()" style="width:auto;margin:0;padding:5px 12px;font-size:.8rem;background:#25D366;color:white;border-radius:6px">
+            ➕ Adicionar todos ao Para
+          </button>
+        </div>
+        <div id="lista-matches"></div>
+
+        <div id="nao-encontrados-wrap" style="margin-top:14px">
+          <div style="font-size:.85rem;font-weight:600;color:#c5221f;margin-bottom:8px">❌ Não encontrados na base</div>
+          <div id="lista-nao-enc"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ── MODAL CONFIGURAÇÕES ── -->
+<div class="modal-bg" id="modal-cfg" onclick="if(event.target===this)fecharConfig()">
+  <div class="modal" style="width:500px">
+    <h2>⚙️ Configurações</h2>
+
+    <div class="cfg-section">
+      <h4>👤 Seus dados</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">
+        <div>
+          <label>Nome</label>
+          <input type="text" id="cfg-nome" placeholder="Seu nome completo">
+        </div>
+        <div>
+          <label>WhatsApp</label>
+          <input type="text" id="cfg-whatsapp" placeholder="(81) 99999-9999">
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-section">
+      <h4>📧 Conta de e-mail para envio</h4>
+      <label>Provedor</label>
+      <select id="cfg-provedor" onchange="atualizarSmtp()" style="margin-bottom:12px">
+        <option value="outlook">Outlook / Hotmail / Office 365</option>
+        <option value="gmail">Gmail</option>
+        <option value="custom">Personalizado</option>
+      </select>
+
+      <label>E-mail de saída</label>
+      <input type="text" id="cfg-email" placeholder="seuemail@hevile.com.br" style="margin-bottom:12px">
+
+      <label>Senha <span style="font-size:.75rem;color:#aaa" id="cfg-senha-hint">(use a senha de app do Outlook)</span></label>
+      <div class="input-pw-wrap">
+        <input type="password" id="cfg-senha" placeholder="••••••••••••">
+        <span class="toggle-pw" onclick="toggleSenha()">👁</span>
+      </div>
+
+      <div id="cfg-smtp-wrap" style="display:none">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0 12px">
+          <div>
+            <label>Servidor SMTP</label>
+            <input type="text" id="cfg-smtp-host" placeholder="smtp.seudominio.com">
+          </div>
+          <div>
+            <label>Porta</label>
+            <input type="text" id="cfg-smtp-port" placeholder="587">
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-status" class="status-email status-none">● Status não verificado</div>
+
+      <button onclick="testarEmail()" class="btn-sec" style="margin-bottom:8px">🔌 Testar conexão</button>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="fecharConfig()">Cancelar</button>
+      <button class="btn-email" onclick="salvarConfig()">💾 Salvar configurações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EDITAR CONTATO ── -->
+<div class="modal-bg" id="modal-edit" onclick="if(event.target===this)fecharEdit()">
+  <div class="modal" style="width:420px">
+    <h2>✏️ Editar Contato</h2>
+    <input type="hidden" id="edit-index">
+    <label>Nome</label>
+    <input type="text" id="edit-nome" readonly style="background:#f8f8f8;color:#888">
+    <label>Empresa</label>
+    <input type="text" id="edit-empresa" readonly style="background:#f8f8f8;color:#888">
+    <label>WhatsApp</label>
+    <input type="text" id="edit-whatsapp" placeholder="(81) 99999-9999">
+    <label>E-mail</label>
+    <input type="text" id="edit-email" placeholder="email@exemplo.com">
+    <label>Categoria</label>
+    <select id="edit-categoria">
+      {% for cat in categorias %}
+      <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+      <option value="Sem categoria">Sem categoria</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="fecharEdit()">Cancelar</button>
+      <button class="btn-email" onclick="salvarEdit()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL NOVO CONTATO ── -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)fecharModal()">
+  <div class="modal">
+    <h2>➕ Adicionar Novo Contato</h2>
+    <div class="grid2">
+      <div>
+        <label>Nome *</label>
+        <input type="text" id="nc-nome" placeholder="Nome completo">
+      </div>
+      <div>
+        <label>Empresa</label>
+        <input type="text" id="nc-empresa" placeholder="Nome da empresa">
+      </div>
+      <div>
+        <label>WhatsApp</label>
+        <input type="text" id="nc-whatsapp" placeholder="(81) 99999-9999">
+      </div>
+      <div>
+        <label>E-mail</label>
+        <input type="text" id="nc-email" placeholder="email@exemplo.com">
+      </div>
+      <div>
+        <label>Categoria</label>
+        <select id="nc-categoria">
+          {% for cat in categorias %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+          <option value="Sem categoria" selected>Sem categoria</option>
+        </select>
+      </div>
+      <div>
+        <label>Cargo</label>
+        <input type="text" id="nc-cargo" placeholder="Ex: Comprador">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-email" onclick="salvarContato()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let todosContatos = [];
+let listaVisivelTabela = [];
+let destinatarios = []; // chips selecionados no painel de mensagem
+let acFocused = -1;
+
+// ──────────────────────────────────────────────
+// CARREGA CONTATOS (com retry automático)
+// ──────────────────────────────────────────────
+async function carregarContatos(tentativa = 1) {
+  const MAX = 10;
+  document.getElementById('info-count').textContent = `⏳ Carregando... (tentativa ${tentativa})`;
+  try {
+    const res = await fetch('/contatos?categoria=&canal=todos');
+    if (!res.ok) throw new Error('status ' + res.status);
+    todosContatos = await res.json();
+    if (!Array.isArray(todosContatos) || todosContatos.length === 0) throw new Error('vazio');
+    aplicarFiltros();
+  } catch (e) {
+    if (tentativa < MAX) {
+      setTimeout(() => carregarContatos(tentativa + 1), 800);
+    } else {
+      document.getElementById('info-count').textContent = '❌ Não foi possível carregar os contatos.';
+      document.getElementById('btn-recarregar').style.display = 'inline-block';
+    }
+  }
+}
+
+function aplicarFiltros() {
+  const cat   = document.getElementById('sel-categoria').value;
+  const canal = document.getElementById('sel-canal').value;
+  const busca = document.getElementById('busca-lista').value.toLowerCase().trim();
+
+  listaVisivelTabela = todosContatos.filter(c => {
+    if (cat   && c.categoria !== cat)                         return false;
+    if (canal === 'whatsapp' && !c.whatsapp)                  return false;
+    if (canal === 'email'    && !c.email)                     return false;
+    if (busca && !c.nome.toLowerCase().includes(busca) &&
+        !(c.empresa||'').toLowerCase().includes(busca))       return false;
+    return true;
+  });
+  renderTabela();
+}
+
+function buscarLista() { aplicarFiltros(); }
+
+// ──────────────────────────────────────────────
+// TABELA
+// ──────────────────────────────────────────────
+function badgeClass(cat) {
+  if (!cat) return 'badge-default';
+  const c = cat.toLowerCase();
+  if (c.includes('ativo'))       return 'badge-ativo';
+  if (c.includes('novo'))        return 'badge-novo';
+  if (c.includes('reconquista')) return 'badge-reconquista';
+  return 'badge-default';
+}
+
+function hl(texto, termo) {
+  if (!termo) return texto || '';
+  const re = new RegExp(`(${termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return (texto || '').replace(re, '<mark>$1</mark>');
+}
+
+function renderTabela() {
+  const termo = document.getElementById('busca-lista').value.trim();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  listaVisivelTabela.forEach((c, i) => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.title = 'Clique para adicionar ao campo "Para"';
+    tr.innerHTML = `
+      <td><input type="checkbox" class="row-check" data-i="${i}" onchange="atualizarSel()"></td>
+      <td><b>${hl(c.nome, termo)}</b> <button class="btn-edit" title="Editar contato" onclick="abrirEdit(event,${i})">✏️</button></td>
+      <td>${hl(c.empresa || '—', termo)}</td>
+      <td><span class="badge ${badgeClass(c.categoria)}">${c.categoria}</span></td>
+      <td>${c.whatsapp ? '✅ '+c.whatsapp : '<span style="color:#ccc">—</span>'}</td>
+      <td>${c.email    ? '✅ '+c.email    : '<span style="color:#ccc">—</span>'}</td>
+    `;
+    // Clique na linha (exceto no checkbox) → adiciona ao campo Para
+    tr.addEventListener('click', e => {
+      if (e.target.type === 'checkbox') return;
+      adicionarDestinatarioObj(c);
+    });
+    tbody.appendChild(tr);
+  });
+  document.getElementById('info-count').textContent = `${listaVisivelTabela.length} contato(s)`;
+  atualizarSel();
+}
+
+function adicionarDestinatarioObj(c) {
+  if (destinatarios.find(d => d.nome === c.nome)) {
+    toast(`"${c.nome}" já está no campo Para.`, '');
+    return;
+  }
+  destinatarios.push(c);
+  renderChips();
+  // Scroll suave até o painel de mensagem
+  document.getElementById('dest-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  toast(`✅ "${c.nome}" adicionado ao campo Para!`, 'sucesso');
+}
+
+function toggleAll(el) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = el.checked);
+  atualizarSel();
+}
+function atualizarSel() {
+  const n = document.querySelectorAll('.row-check:checked').length;
+  document.getElementById('info-sel').textContent = `${n} selecionado(s)`;
+}
+
+// ──────────────────────────────────────────────
+// AUTOCOMPLETE DE DESTINATÁRIOS
+// ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('dest-input');
+  input.addEventListener('input', () => autocomplete(input.value));
+});
+
+function autocomplete(termo) {
+  const list = document.getElementById('ac-list');
+  acFocused = -1;
+  if (!termo.trim()) { list.classList.remove('ativo'); return; }
+
+  const t = termo.toLowerCase();
+  const matches = todosContatos
+    .filter(c => !destinatarios.find(d => d.nome === c.nome))
+    .filter(c => c.nome.toLowerCase().includes(t) || (c.empresa||'').toLowerCase().includes(t))
+    .slice(0, 8);
+
+  if (!matches.length) { list.classList.remove('ativo'); return; }
+
+  list.innerHTML = matches.map((c, i) => `
+    <div class="ac-item" data-i="${i}">
+      <div>
+        <div class="ac-nome">${hl(c.nome, termo)}</div>
+        <div class="ac-emp">${hl(c.empresa || '', termo)}</div>
+      </div>
+      <div class="ac-badges">
+        ${c.whatsapp ? '<span class="ac-badge wp">WhatsApp</span>' : ''}
+        ${c.email    ? '<span class="ac-badge email">E-mail</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+
+  list._matches = matches;
+  list.classList.add('ativo');
+
+  // mousedown com preventDefault evita que o input perca foco antes do clique registrar
+  list.querySelectorAll('.ac-item').forEach((el, i) => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      adicionarDestinatario(i);
+    });
+  });
+}
+
+function acKeyDown(e) {
+  const list = document.getElementById('ac-list');
+  const items = list.querySelectorAll('.ac-item');
+  if (!list.classList.contains('ativo')) return;
+
+  if (e.key === 'ArrowDown') {
+    acFocused = Math.min(acFocused + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    acFocused = Math.max(acFocused - 1, 0);
+  } else if (e.key === 'Enter' && acFocused >= 0) {
+    e.preventDefault();
+    adicionarDestinatario(acFocused);
+    return;
+  } else if (e.key === 'Escape') {
+    list.classList.remove('ativo'); return;
+  }
+  items.forEach((el, i) => el.classList.toggle('focused', i === acFocused));
+}
+
+function adicionarDestinatario(i) {
+  const list = document.getElementById('ac-list');
+  const c = list._matches[i];
+  if (!c) return;
+  if (!destinatarios.find(d => d.nome === c.nome)) {
+    destinatarios.push(c);
+    renderChips();
+  }
+  document.getElementById('dest-input').value = '';
+  list.classList.remove('ativo');
+  document.getElementById('dest-input').focus();
+}
+
+function removerDestinatario(i) {
+  destinatarios.splice(i, 1);
+  renderChips();
+}
+
+function renderChips() {
+  const box = document.getElementById('dest-box');
+  const input = document.getElementById('dest-input');
+  box.querySelectorAll('.chip').forEach(el => el.remove());
+  destinatarios.forEach((c, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `${c.nome} <span class="rm" onclick="removerDestinatario(${i})">×</span>`;
+    box.insertBefore(chip, input);
+  });
+}
+
+// Fecha autocomplete ao clicar fora
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    document.getElementById('ac-list').classList.remove('ativo');
+  }
+});
+
+// ──────────────────────────────────────────────
+// ENVIO
+// ──────────────────────────────────────────────
+function getMensagem(nome) {
+  return document.getElementById('mensagem').value.replace(/{nome}/g, nome);
+}
+
+function toast(msg, tipo = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = tipo;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 4500);
+}
+
+async function enviarWhatsApp() {
+  const alvos = destinatarios.filter(c => c.whatsapp);
+  if (!alvos.length) { toast('Nenhum destinatário com WhatsApp selecionado.', 'erro'); return; }
+  const mensagem = document.getElementById('mensagem').value;
+  if (!mensagem.trim()) { toast('Escreva a mensagem antes de enviar.', 'erro'); return; }
+
+  // O backend decide o provedor (hoje wa.me; futuramente Cloud API do Meta).
+  const res = await fetch('/enviar_whatsapp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mensagem, destinatarios: alvos.map(c => ({ whatsapp: c.whatsapp, nome: c.nome })) })
+  });
+  const data = await res.json();
+  if (!data.ok) { toast('❌ ' + (data.erro || 'Erro ao preparar envio.'), 'erro'); return; }
+
+  if (data.modo === 'wa.me') {
+    // abre em lotes de 10 para o navegador não bloquear os pop-ups
+    let abertos = 0;
+    for (const item of data.links) {
+      window.open(item.link, '_blank');
+      if (++abertos >= 10) break;
+    }
+    const rest = data.links.length - abertos;
+    toast(`✅ ${abertos} WhatsApp(s) aberto(s)!${rest > 0 ? ` Repita para os demais ${rest}.` : ''}`, 'sucesso');
+  } else {
+    toast(`✅ ${data.enviados || 0} mensagem(ns) enviada(s)!`, 'sucesso');
+  }
+}
+
+async function enviarEmail() {
+  const alvos = destinatarios.filter(c => c.email);
+  if (!alvos.length) { toast('Nenhum destinatário com e-mail selecionado.', 'erro'); return; }
+  const assunto  = document.getElementById('assunto').value;
+  const mensagem = document.getElementById('mensagem').value;
+  if (!mensagem.trim()) { toast('Escreva a mensagem antes de enviar.', 'erro'); return; }
+
+  toast('Enviando e-mails...', '');
+  const res = await fetch('/enviar_email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assunto, mensagem, destinatarios: alvos.map(c => ({ email: c.email, nome: c.nome })) })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    toast(`✅ ${data.enviados} e-mail(s) enviado(s)!${data.erros.length ? ` ${data.erros.length} erro(s).` : ''}`, 'sucesso');
+  } else {
+    toast('❌ ' + data.erro, 'erro');
+  }
+}
+
+// ──────────────────────────────────────────────
+// MODAL NOVO CONTATO
+// ──────────────────────────────────────────────
+function abrirModal() {
+  ['nc-nome','nc-empresa','nc-whatsapp','nc-email','nc-cargo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('modal-bg').classList.add('ativo');
+  document.getElementById('nc-nome').focus();
+}
+function fecharModal() {
+  document.getElementById('modal-bg').classList.remove('ativo');
+}
+
+async function salvarContato() {
+  const nome = document.getElementById('nc-nome').value.trim();
+  if (!nome) { toast('Informe o nome do contato.', 'erro'); return; }
+
+  const payload = {
+    nome,
+    empresa:   document.getElementById('nc-empresa').value.trim(),
+    whatsapp:  document.getElementById('nc-whatsapp').value.trim(),
+    email:     document.getElementById('nc-email').value.trim(),
+    categoria: document.getElementById('nc-categoria').value,
+    cargo:     document.getElementById('nc-cargo').value.trim(),
+  };
+
+  const res  = await fetch('/adicionar_contato', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (data.ok) {
+    toast(`✅ Contato "${nome}" adicionado!`, 'sucesso');
+    fecharModal();
+    await carregarContatos();
+  } else {
+    toast('❌ ' + data.erro, 'erro');
+  }
+}
+
+// ──────────────────────────────────────────────
+// HISTÓRICO DE PLANILHAS
+// ──────────────────────────────────────────────
+async function carregarHistorico() {
+  const res  = await fetch('/historico');
+  const hist = await res.json();
+  const wrap = document.getElementById('historico-lista');
+  const list = document.getElementById('historico-items');
+  if (!hist.length) { wrap.style.display = 'none'; return; }
+
+  list.innerHTML = '';
+  hist.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'hist-item';
+    div.title = 'Clique para reprocessar';
+    div.innerHTML = `
+      <span class="hist-icon">📄</span>
+      <div class="hist-info">
+        <div class="hist-nome">${h.nome_orig}</div>
+        <div class="hist-meta">${h.data}</div>
+      </div>
+      <div class="hist-badges">
+        <span class="hist-badge tot">${h.total} importadores</span>
+        <span class="hist-badge enc">${h.encontrados} encontrados</span>
+      </div>
+    `;
+    div.addEventListener('click', () => reprocessar(h.id, h.nome_orig));
+    list.appendChild(div);
+  });
+  wrap.style.display = 'block';
+}
+
+async function reprocessar(id, nomeArq) {
+  document.getElementById('resultado-campanha').style.display = 'none';
+  document.getElementById('camp-loading').style.display = 'block';
+  document.getElementById('drop-zone').querySelector('p').innerHTML =
+    `<strong>📄 ${nomeArq}</strong> — reprocessando...`;
+  try {
+    const res  = await fetch(`/reprocessar/${id}`);
+    const data = await res.json();
+    document.getElementById('camp-loading').style.display = 'none';
+    if (!data.ok) { toast('❌ ' + data.erro, 'erro'); return; }
+    renderResultado(data);
+    document.getElementById('drop-zone').querySelector('p').innerHTML =
+      '<strong>Clique para selecionar</strong> ou arraste outra planilha';
+  } catch(e) {
+    document.getElementById('camp-loading').style.display = 'none';
+    toast('❌ Erro ao reprocessar.', 'erro');
+  }
+}
+
+// ──────────────────────────────────────────────
+// ABAS
+// ──────────────────────────────────────────────
+function trocarAba(aba) {
+  ['contatos','campanha'].forEach(a => {
+    document.getElementById('aba-' + a).classList.toggle('ativa', a === aba);
+    document.getElementById('painel-' + a).classList.toggle('ativo', a === aba);
+  });
+  if (aba === 'campanha') carregarHistorico();
+}
+
+// ──────────────────────────────────────────────
+// ABA CAMPANHA — UPLOAD E CRUZAMENTO
+// ──────────────────────────────────────────────
+let matchesGlobais = [];
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processarArquivo(file);
+}
+
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processarArquivo(file);
+  e.target.value = '';
+}
+
+async function processarArquivo(file) {
+  document.getElementById('resultado-campanha').style.display = 'none';
+  document.getElementById('camp-loading').style.display = 'block';
+  document.getElementById('drop-zone').querySelector('p').innerHTML =
+    `<strong>📄 ${file.name}</strong> — processando...`;
+
+  const form = new FormData();
+  form.append('arquivo', file);
+  try {
+    const res  = await fetch('/cruzar_campanha', { method: 'POST', body: form });
+    const data = await res.json();
+    document.getElementById('camp-loading').style.display = 'none';
+    if (!data.ok) { toast('❌ ' + data.erro, 'erro'); return; }
+    renderResultado(data);
+    carregarHistorico();
+  } catch(e) {
+    document.getElementById('camp-loading').style.display = 'none';
+    toast('❌ Erro ao processar o arquivo.', 'erro');
+  }
+}
+
+function renderResultado(data) {
+  matchesGlobais = data.encontrados;
+  document.getElementById('res-total').textContent = data.total;
+  document.getElementById('res-enc').textContent   = data.encontrados.length;
+  document.getElementById('res-nenc').textContent  = data.nao_encontrados.length;
+
+  // Encontrados
+  const lm = document.getElementById('lista-matches');
+  lm.innerHTML = '';
+  data.encontrados.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'match-row';
+    div.id = 'match-row-' + i;
+    const scoreClass = m.score >= 90 ? 'score-alto' : 'score-medio';
+    const scoreLabel = m.score >= 90 ? `✅ ${m.score}% match` : `⚠️ ${m.score}% match`;
+    div.innerHTML = `
+      <div class="match-info">
+        <div class="match-nome">${m.contato.nome}</div>
+        <div class="match-emp">${m.contato.empresa || ''} · na planilha: <i>${m.nome_planilha}</i></div>
+      </div>
+      <span class="match-score ${scoreClass}">${scoreLabel}</span>
+      <button class="btn-add-match" id="btn-match-${i}" onclick="adicionarMatch(${i})">➕ Para</button>
+    `;
+    lm.appendChild(div);
+  });
+
+  // Não encontrados
+  const ln = document.getElementById('lista-nao-enc');
+  ln.innerHTML = '';
+  if (data.nao_encontrados.length === 0) {
+    document.getElementById('nao-encontrados-wrap').style.display = 'none';
+  } else {
+    document.getElementById('nao-encontrados-wrap').style.display = 'block';
+    data.nao_encontrados.forEach(n => {
+      ln.innerHTML += `<div class="nao-enc-row">❌ <span>${n}</span></div>`;
+    });
+  }
+
+  document.getElementById('resultado-campanha').style.display = 'block';
+  document.getElementById('drop-zone').querySelector('p').innerHTML =
+    '<strong>Clique para selecionar</strong> ou arraste outra planilha';
+}
+
+function adicionarMatch(i) {
+  const m = matchesGlobais[i];
+  const btn = document.getElementById('btn-match-' + i);
+  adicionarDestinatarioObj(m.contato);
+  btn.textContent  = '✅ Adicionado';
+  btn.className    = 'btn-add-match adicionado';
+  btn.disabled     = true;
+  trocarAba('contatos'); // opcional: mantém na aba ou vai pro Para
+}
+
+function adicionarTodosMatch() {
+  matchesGlobais.forEach((m, i) => {
+    if (!destinatarios.find(d => d.nome === m.contato.nome)) {
+      destinatarios.push(m.contato);
+      const btn = document.getElementById('btn-match-' + i);
+      if (btn) { btn.textContent = '✅ Adicionado'; btn.className = 'btn-add-match adicionado'; btn.disabled = true; }
+    }
+  });
+  renderChips();
+  toast(`✅ ${matchesGlobais.length} contato(s) adicionado(s) ao campo Para!`, 'sucesso');
+}
+
+// ──────────────────────────────────────────────
+// EDITAR CONTATO
+// ──────────────────────────────────────────────
+function abrirEdit(event, i) {
+  event.stopPropagation(); // não dispara o clique da linha
+  const c = listaVisivelTabela[i];
+  document.getElementById('edit-index').value    = i;
+  document.getElementById('edit-nome').value     = c.nome;
+  document.getElementById('edit-empresa').value  = c.empresa || '';
+  document.getElementById('edit-whatsapp').value = c.whatsapp || '';
+  document.getElementById('edit-email').value    = c.email || '';
+  const sel = document.getElementById('edit-categoria');
+  sel.value = c.categoria || 'Sem categoria';
+  document.getElementById('modal-edit').classList.add('ativo');
+  document.getElementById('edit-whatsapp').focus();
+}
+
+function fecharEdit() {
+  document.getElementById('modal-edit').classList.remove('ativo');
+}
+
+async function salvarEdit() {
+  const i    = parseInt(document.getElementById('edit-index').value);
+  const c    = listaVisivelTabela[i];
+  const payload = {
+    id:        c.id,
+    whatsapp:  document.getElementById('edit-whatsapp').value.trim(),
+    email:     document.getElementById('edit-email').value.trim(),
+    categoria: document.getElementById('edit-categoria').value,
+  };
+  const res  = await fetch('/editar_contato', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (data.ok) {
+    toast(`✅ Contato "${c.nome}" atualizado!`, 'sucesso');
+    fecharEdit();
+    await carregarContatos();
+  } else {
+    toast('❌ ' + data.erro, 'erro');
+  }
+}
+
+// ──────────────────────────────────────────────
+// CONFIGURAÇÕES
+// ──────────────────────────────────────────────
+const SMTP_PRESETS = {
+  outlook: { host: 'smtp.office365.com', port: '587', hint: '(use a senha da sua conta Outlook)' },
+  gmail:   { host: 'smtp.gmail.com',     port: '465', hint: '(use a senha de app do Gmail — não a senha normal)' },
+  custom:  { host: '', port: '587', hint: '(senha da sua conta de e-mail)' },
+};
+
+function atualizarSmtp() {
+  const p = document.getElementById('cfg-provedor').value;
+  const preset = SMTP_PRESETS[p];
+  document.getElementById('cfg-smtp-host').value = preset.host;
+  document.getElementById('cfg-smtp-port').value = preset.port;
+  document.getElementById('cfg-senha-hint').textContent = preset.hint;
+  document.getElementById('cfg-smtp-wrap').style.display = p === 'custom' ? 'block' : 'none';
+}
+
+async function abrirConfig() {
+  const res = await fetch('/config');
+  const cfg = await res.json();
+  document.getElementById('cfg-nome').value     = cfg.nome     || '';
+  document.getElementById('cfg-whatsapp').value = cfg.whatsapp || '';
+  document.getElementById('cfg-email').value    = cfg.email    || '';
+  document.getElementById('cfg-senha').value    = cfg.senha    || '';
+  const prov = cfg.provedor || 'outlook';
+  document.getElementById('cfg-provedor').value = prov;
+  atualizarSmtp();
+  if (prov === 'custom') {
+    document.getElementById('cfg-smtp-host').value = cfg.smtp_host || '';
+    document.getElementById('cfg-smtp-port').value = cfg.smtp_port || '587';
+  }
+  setStatus('none', '● Status não verificado');
+  document.getElementById('modal-cfg').classList.add('ativo');
+}
+
+function fecharConfig() {
+  document.getElementById('modal-cfg').classList.remove('ativo');
+}
+
+function toggleSenha() {
+  const el = document.getElementById('cfg-senha');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function setStatus(tipo, msg) {
+  const el = document.getElementById('cfg-status');
+  el.className = `status-email status-${tipo}`;
+  el.textContent = msg;
+}
+
+async function testarEmail() {
+  setStatus('none', '⏳ Testando...');
+  const payload = getConfigPayload();
+  const res  = await fetch('/testar_email', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (data.ok) setStatus('ok',  '✅ Conexão OK — e-mails prontos para envio!');
+  else         setStatus('err', '❌ ' + data.erro);
+}
+
+function getConfigPayload() {
+  const prov = document.getElementById('cfg-provedor').value;
+  const preset = SMTP_PRESETS[prov];
+  return {
+    nome:      document.getElementById('cfg-nome').value.trim(),
+    whatsapp:  document.getElementById('cfg-whatsapp').value.trim(),
+    email:     document.getElementById('cfg-email').value.trim(),
+    senha:     document.getElementById('cfg-senha').value,
+    provedor:  prov,
+    smtp_host: prov === 'custom' ? document.getElementById('cfg-smtp-host').value.trim() : preset.host,
+    smtp_port: prov === 'custom' ? document.getElementById('cfg-smtp-port').value.trim() : preset.port,
+  };
+}
+
+async function salvarConfig() {
+  const payload = getConfigPayload();
+  if (!payload.email) { toast('Informe o e-mail de saída.', 'erro'); return; }
+  const res  = await fetch('/salvar_config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (data.ok) {
+    toast('✅ Configurações salvas!', 'sucesso');
+    document.getElementById('hdr-nome').textContent  = payload.nome;
+    document.getElementById('hdr-email').textContent = payload.email;
+    fecharConfig();
+  } else {
+    toast('❌ ' + data.erro, 'erro');
+  }
+}
+
+// ──────────────────────────────────────────────
+carregarContatos();
+</script>
+</body>
+</html>
