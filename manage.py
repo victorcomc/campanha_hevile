@@ -144,7 +144,8 @@ def seed_embed(origem=SEED_FILE):
     _upsert(registros)
 
 
-def criar_admin(nome, email, senha):
+def criar_usuario(nome, email, senha, is_admin=False):
+    email = email.strip().lower()
     s = SessionLocal()
     if s.query(Usuario).filter_by(email=email).first():
         print(f"⚠️  Já existe usuário com e-mail {email}.")
@@ -152,12 +153,13 @@ def criar_admin(nome, email, senha):
         return
     u = Usuario(
         nome=nome, email=email, senha_hash=generate_password_hash(senha),
-        is_admin=True, email_remetente=email,
+        is_admin=is_admin, email_remetente=email,
     )
     s.add(u)
     s.commit()
     s.close()
-    print(f"✅ Admin criado: {email}")
+    tipo = "Admin" if is_admin else "Usuário"
+    print(f"✅ {tipo} criado: {email}")
 
 
 def main():
@@ -179,6 +181,12 @@ def main():
     pa.add_argument("--email", required=True)
     pa.add_argument("--senha", required=True)
 
+    pu = sub.add_parser("criar-usuario", help="cria um usuário (use --admin para administrador)")
+    pu.add_argument("--nome", required=True)
+    pu.add_argument("--email", required=True)
+    pu.add_argument("--senha", required=True)
+    pu.add_argument("--admin", action="store_true", help="torna o usuário administrador")
+
     args = p.parse_args()
 
     if args.cmd == "init-db":
@@ -194,7 +202,10 @@ def main():
         seed_embed()
     elif args.cmd == "criar-admin":
         init_db()
-        criar_admin(args.nome, args.email, args.senha)
+        criar_usuario(args.nome, args.email, args.senha, is_admin=True)
+    elif args.cmd == "criar-usuario":
+        init_db()
+        criar_usuario(args.nome, args.email, args.senha, is_admin=args.admin)
 
 
 if __name__ == "__main__":

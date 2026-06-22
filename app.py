@@ -7,6 +7,7 @@ Substitui o app antigo (.exe + planilha Excel). Mesmas funcionalidades, agora:
 """
 import csv
 import io
+from functools import wraps
 
 import pandas as pd
 from flask import (
@@ -56,6 +57,18 @@ def db():
     return SessionLocal()
 
 
+def admin_required(f):
+    """Protege rotas que só administradores podem acessar."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for("login"))
+        if not current_user.is_admin:
+            return jsonify(ok=False, erro="Apenas administradores podem fazer isso."), 403
+        return f(*args, **kwargs)
+    return wrapper
+
+
 # ─────────────────────────── Autenticação ───────────────────────────
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -97,7 +110,81 @@ def index():
         nome_remetente=current_user.nome or "",
         whatsapp_remetente=current_user.whatsapp_remetente or "",
         email_remetente=current_user.email_remetente or "",
+        is_admin=current_user.is_admin,
     )
+
+
+# ─────────────────────────── Gestão de usuários (admin) ───────────────────────────
+@app.route("/usuarios")
+@admin_required
+def listar_usuarios():
+    s = db()
+    us = s.query(Usuario).order_by(Usuario.nome).all()
+    return jsonify([
+        {"id": u.id, "nome": u.nome, "email": u.email, "is_admin": u.is_admin}
+        for u in us
+    ])
+
+
+@app.route("/criar_usuario", methods=["POST"])
+@admin_required
+def criar_usuario():
+    data = request.json or {}
+    nome = (data.get("nome") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    senha = data.get("senha") or ""
+    is_admin = bool(data.get("is_admin"))
+    if not nome or not email or not senha:
+        return jsonify(ok=False, erro="Preencha nome, e-mail e senha.")
+    if len(senha) < 6:
+        return jsonify(ok=False, erro="A senha deve ter pelo menos 6 caracteres.")
+    s = db()
+    if s.query(Usuario).filter(Usuario.email == email).first():
+        return jsonify(ok=False, erro="Já existe um usuário com esse e-mail.")
+    try:
+        u = Usuario(
+            nome=nome, email=email,
+            senha_hash=generate_password_hash(senha),
+            is_admin=is_admin, email_remetente=email,
+        )
+        s.add(u)
+        s.commit()
+        return jsonify(ok=True, id=u.id)
+    except Exception as e:
+        return jsonify(ok=False, erro=str(e))
+
+
+@app.route("/resetar_senha", methods=["POST"])
+@admin_required
+def resetar_senha():
+    data = request.json or {}
+    uid = data.get("id")
+    nova = data.get("senha") or ""
+    if len(nova) < 6:
+        return jsonify(ok=False, erro="A senha deve ter pelo menos 6 caracteres.")
+    s = db()
+    u = s.get(Usuario, int(uid)) if uid is not None else None
+    if not u:
+        return jsonify(ok=False, erro="Usuário não encontrado.")
+    u.senha_hash = generate_password_hash(nova)
+    s.commit()
+    return jsonify(ok=True)
+
+
+@app.route("/excluir_usuario", methods=["POST"])
+@admin_required
+def excluir_usuario():
+    data = request.json or {}
+    uid = int(data.get("id")) if data.get("id") is not None else None
+    if uid == current_user.id:
+        return jsonify(ok=False, erro="Você não pode excluir o próprio usuário.")
+    s = db()
+    u = s.get(Usuario, uid) if uid is not None else None
+    if not u:
+        return jsonify(ok=False, erro="Usuário não encontrado.")
+    s.delete(u)
+    s.commit()
+    return jsonify(ok=True)
 
 
 # ─────────────────────────── Contatos ───────────────────────────

@@ -403,7 +403,10 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
     <div><b id="hdr-nome">{{ nome_remetente }}</b></div>
     <div>📱 <span id="hdr-whatsapp">{{ whatsapp_remetente }}</span> &nbsp;|&nbsp; ✉️ <span id="hdr-email">{{ email_remetente }}</span></div>
   </div>
-  <button onclick="abrirConfig()" style="margin-left:18px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;cursor:pointer;width:auto;margin-bottom:0" title="Configurações de e-mail">⚙️ Config</button>
+  {% if is_admin %}
+  <button onclick="abrirUsuarios()" style="margin-left:18px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;cursor:pointer;width:auto;margin-bottom:0" title="Gerenciar usuários">👥 Usuários</button>
+  {% endif %}
+  <button onclick="abrirConfig()" style="margin-left:8px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;cursor:pointer;width:auto;margin-bottom:0" title="Configurações de e-mail">⚙️ Config</button>
   <a href="/logout" style="margin-left:8px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;font-size:.88rem;text-decoration:none;display:inline-block" title="Sair">🚪 Sair</a>
 </header>
 
@@ -692,6 +695,42 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
     <div class="modal-btns">
       <button class="btn-sec" onclick="fecharModal()">Cancelar</button>
       <button class="btn-email" onclick="salvarContato()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GERENCIAR USUÁRIOS (admin) ── -->
+<div class="modal-bg" id="modal-usuarios" onclick="if(event.target===this)fecharUsuarios()">
+  <div class="modal" style="width:560px">
+    <h2>👥 Usuários</h2>
+
+    <div class="cfg-section" style="border-top:none;padding-top:0">
+      <h4>➕ Novo usuário</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">
+        <div>
+          <label>Nome</label>
+          <input type="text" id="nu-nome" placeholder="Nome completo">
+        </div>
+        <div>
+          <label>E-mail (login)</label>
+          <input type="text" id="nu-email" placeholder="pessoa@hevile.com.br">
+        </div>
+      </div>
+      <label>Senha inicial</label>
+      <input type="text" id="nu-senha" placeholder="mínimo 6 caracteres">
+      <label style="display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer">
+        <input type="checkbox" id="nu-admin" style="width:auto;margin:0"> É administrador (pode gerenciar usuários)
+      </label>
+      <button class="btn-email" onclick="salvarUsuario()" style="margin-top:12px">💾 Criar usuário</button>
+    </div>
+
+    <div class="cfg-section">
+      <h4>Usuários cadastrados</h4>
+      <div id="lista-usuarios" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="fecharUsuarios()">Fechar</button>
     </div>
   </div>
 </div>
@@ -1315,6 +1354,80 @@ async function salvarConfig() {
   } else {
     toast('❌ ' + data.erro, 'erro');
   }
+}
+
+// ──────────────────────────────────────────────
+// GERENCIAR USUÁRIOS (admin)
+// ──────────────────────────────────────────────
+async function abrirUsuarios() {
+  document.getElementById('modal-usuarios').classList.add('ativo');
+  await carregarUsuarios();
+}
+function fecharUsuarios() {
+  document.getElementById('modal-usuarios').classList.remove('ativo');
+}
+
+async function carregarUsuarios() {
+  const res = await fetch('/usuarios');
+  if (!res.ok) { toast('Sem permissão para ver usuários.', 'erro'); return; }
+  const us = await res.json();
+  const wrap = document.getElementById('lista-usuarios');
+  wrap.innerHTML = '';
+  us.forEach(u => {
+    const row = document.createElement('div');
+    row.className = 'match-row';
+    row.innerHTML = `
+      <div class="match-info">
+        <div class="match-nome">${u.nome} ${u.is_admin ? '<span class="badge badge-novo">admin</span>' : ''}</div>
+        <div class="match-emp">${u.email}</div>
+      </div>
+      <button class="btn-add-match" onclick="resetarSenha(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🔑 Senha</button>
+      <button class="btn-add-match" style="background:#fce8e6;color:#c5221f" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🗑️</button>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+async function salvarUsuario() {
+  const payload = {
+    nome:     document.getElementById('nu-nome').value.trim(),
+    email:    document.getElementById('nu-email').value.trim(),
+    senha:    document.getElementById('nu-senha').value,
+    is_admin: document.getElementById('nu-admin').checked,
+  };
+  if (!payload.nome || !payload.email || !payload.senha) { toast('Preencha nome, e-mail e senha.', 'erro'); return; }
+  const res = await fetch('/criar_usuario', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (data.ok) {
+    toast(`✅ Usuário "${payload.nome}" criado!`, 'sucesso');
+    ['nu-nome','nu-email','nu-senha'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nu-admin').checked = false;
+    carregarUsuarios();
+  } else {
+    toast('❌ ' + data.erro, 'erro');
+  }
+}
+
+async function resetarSenha(id, nome) {
+  const nova = prompt(`Nova senha para "${nome}" (mínimo 6 caracteres):`);
+  if (!nova) return;
+  const res = await fetch('/resetar_senha', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, senha: nova })
+  });
+  const data = await res.json();
+  toast(data.ok ? `✅ Senha de "${nome}" redefinida!` : '❌ ' + data.erro, data.ok ? 'sucesso' : 'erro');
+}
+
+async function excluirUsuario(id, nome) {
+  if (!confirm(`Excluir o usuário "${nome}"? Esta ação não pode ser desfeita.`)) return;
+  const res = await fetch('/excluir_usuario', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
+  });
+  const data = await res.json();
+  if (data.ok) { toast(`✅ Usuário "${nome}" excluído.`, 'sucesso'); carregarUsuarios(); }
+  else { toast('❌ ' + data.erro, 'erro'); }
 }
 
 // ──────────────────────────────────────────────
