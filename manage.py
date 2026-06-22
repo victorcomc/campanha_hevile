@@ -1,8 +1,9 @@
 """Comandos de gestão do sistema.
 
 Uso:
-  python manage.py init-db                          # cria as tabelas
-  python manage.py importar "../AGENDOR PESSOAS.xlsx"  # importa a planilha para o banco
+  python manage.py init-db                              # cria as tabelas
+  python manage.py importar "../AGENDOR PESSOAS.xlsx"   # importa a planilha (local)
+  python manage.py seed-embed                           # importa do seed criptografado (no servidor)
   python manage.py criar-admin --nome "Victor" --email victor@hevile.com.br --senha "..."
 """
 import argparse
@@ -21,6 +22,8 @@ from werkzeug.security import generate_password_hash
 from db import SessionLocal, init_db
 from models import Contato, Usuario
 from utils import limpar_email, limpar_telefone
+
+SEED_FILE = "seed_data.enc"
 
 # Mapa: coluna da planilha do Agendor -> campo do nosso modelo
 COLS = {
@@ -43,55 +46,55 @@ def _txt(v):
     return s or None
 
 
-def importar(caminho: str):
+def _linhas_da_planilha(caminho):
+    """Lê o .xlsx e devolve uma lista de dicts já LIMPOS (telefone/e-mail corrigidos)."""
     df = pd.read_excel(caminho)
     faltando = [c for c in COLS if c not in df.columns]
     if faltando:
         print(f"⚠️  Colunas ausentes na planilha (serão ignoradas): {faltando}")
+    registros = []
+    for _, r in df.iterrows():
+        agendor_id = r.get("Código da pessoa")
+        registros.append({
+            "agendor_id": int(agendor_id) if pd.notna(agendor_id) else None,
+            "nome": _txt(r.get("Nome")) or "(sem nome)",
+            "empresa": _txt(r.get("Empresa relacionada")),
+            "cargo": _txt(r.get("Cargo")),
+            "email": limpar_email(r.get("E-mail")),
+            "whatsapp": limpar_telefone(r.get("WhatsApp")),
+            "categoria": _txt(r.get("Categoria")) or "Sem categoria",
+            "cidade": _txt(r.get("Cidade")),
+            "estado": _txt(r.get("Estado")),
+        })
+    return registros
 
+
+def _upsert(registros):
+    """Insere/atualiza contatos a partir de uma lista de dicts limpos. Idempotente por agendor_id."""
     s = SessionLocal()
     novos = atualizados = sem_id = 0
-    vistos_contato = {}      # (whatsapp,email) -> nome  (para detectar duplicatas reais)
-    duplicatas = []
-
-    for _, r in df.iterrows():
-        nome = _txt(r.get("Nome")) or "(sem nome)"
-        agendor_id = r.get("Código da pessoa")
-        agendor_id = int(agendor_id) if pd.notna(agendor_id) else None
-
-        whatsapp = limpar_telefone(r.get("WhatsApp"))
-        email = limpar_email(r.get("E-mail"))
-
-        # detecta duplicata real (mesma pessoa cadastrada 2x): mesmo zap + mesmo email
-        chave = (whatsapp, email)
-        if whatsapp and email and chave in vistos_contato:
-            duplicatas.append((nome, vistos_contato[chave], agendor_id))
-        elif whatsapp and email:
-            vistos_contato[chave] = nome
-
-        dados = dict(
-            nome=nome,
-            empresa=_txt(r.get("Empresa relacionada")),
-            cargo=_txt(r.get("Cargo")),
-            email=email,
-            whatsapp=whatsapp,
-            categoria=_txt(r.get("Categoria")) or "Sem categoria",
-            cidade=_txt(r.get("Cidade")),
-            estado=_txt(r.get("Estado")),
-        )
+    vistos, duplicatas = {}, []
+    for d in registros:
+        chave = (d["whatsapp"], d["email"])
+        if d["whatsapp"] and d["email"]:
+            if chave in vistos:
+                duplicatas.append((d["nome"], vistos[chave], d["agendor_id"]))
+            else:
+                vistos[chave] = d["nome"]
 
         existente = None
-        if agendor_id is not None:
-            existente = s.query(Contato).filter_by(agendor_id=agendor_id).first()
+        if d["agendor_id"] is not None:
+            existente = s.query(Contato).filter_by(agendor_id=d["agendor_id"]).first()
         else:
             sem_id += 1
 
         if existente:
-            for k, v in dados.items():
-                setattr(existente, k, v)
+            for k, v in d.items():
+                if k != "agendor_id":
+                    setattr(existente, k, v)
             atualizados += 1
         else:
-            s.add(Contato(agendor_id=agendor_id, **dados))
+            s.add(Contato(**d))
             novos += 1
 
     s.commit()
@@ -100,13 +103,45 @@ def importar(caminho: str):
     com_email = s.query(Contato).filter(Contato.email.isnot(None)).count()
     s.close()
 
-    print(f"\n✅ Importação concluída.")
+    print("\n✅ Importação concluída.")
     print(f"   Novos: {novos} | Atualizados: {atualizados} | Sem código Agendor: {sem_id}")
     print(f"   Total no banco: {total} | com WhatsApp: {com_wpp} | com e-mail: {com_email}")
     if duplicatas:
         print(f"\n⚠️  {len(duplicatas)} possível(is) duplicata(s) real(is) (mesmo WhatsApp + e-mail):")
         for nome, outro, aid in duplicatas:
             print(f"     - {nome} (id {aid}) == {outro}")
+
+
+def importar(caminho):
+    _upsert(_linhas_da_planilha(caminho))
+
+
+def gerar_seed(caminho_planilha, destino=SEED_FILE):
+    """Lê a planilha, criptografa os contatos com a FERNET_KEY e grava o seed cifrado."""
+    import gzip
+    import json
+
+    from crypto import _fernet
+
+    registros = _linhas_da_planilha(caminho_planilha)
+    bruto = gzip.compress(json.dumps(registros, ensure_ascii=False).encode("utf-8"))
+    token = _fernet().encrypt(bruto)
+    with open(destino, "wb") as f:
+        f.write(token)
+    print(f"✅ Seed criptografado gerado: {destino} ({len(token)} bytes, {len(registros)} contatos)")
+
+
+def seed_embed(origem=SEED_FILE):
+    """Lê o seed cifrado, descriptografa com a FERNET_KEY e popula o banco."""
+    import gzip
+    import json
+
+    from crypto import _fernet
+
+    with open(origem, "rb") as f:
+        token = f.read()
+    registros = json.loads(gzip.decompress(_fernet().decrypt(token)).decode("utf-8"))
+    _upsert(registros)
 
 
 def criar_admin(nome, email, senha):
@@ -116,11 +151,8 @@ def criar_admin(nome, email, senha):
         s.close()
         return
     u = Usuario(
-        nome=nome,
-        email=email,
-        senha_hash=generate_password_hash(senha),
-        is_admin=True,
-        email_remetente=email,
+        nome=nome, email=email, senha_hash=generate_password_hash(senha),
+        is_admin=True, email_remetente=email,
     )
     s.add(u)
     s.commit()
@@ -134,8 +166,13 @@ def main():
 
     sub.add_parser("init-db", help="cria as tabelas no banco")
 
-    pi = sub.add_parser("importar", help="importa a planilha para o banco")
-    pi.add_argument("caminho", help="caminho do .xlsx")
+    pi = sub.add_parser("importar", help="importa a planilha (.xlsx) para o banco")
+    pi.add_argument("caminho")
+
+    pg = sub.add_parser("gerar-seed", help="gera o seed criptografado a partir da planilha")
+    pg.add_argument("caminho")
+
+    sub.add_parser("seed-embed", help="popula o banco a partir do seed criptografado")
 
     pa = sub.add_parser("criar-admin", help="cria um usuário administrador")
     pa.add_argument("--nome", required=True)
@@ -150,6 +187,11 @@ def main():
     elif args.cmd == "importar":
         init_db()
         importar(args.caminho)
+    elif args.cmd == "gerar-seed":
+        gerar_seed(args.caminho)
+    elif args.cmd == "seed-embed":
+        init_db()
+        seed_embed()
     elif args.cmd == "criar-admin":
         init_db()
         criar_admin(args.nome, args.email, args.senha)
