@@ -148,7 +148,8 @@ def listar_usuarios():
     s = db()
     us = s.query(Usuario).order_by(Usuario.nome).all()
     return jsonify([
-        {"id": u.id, "nome": u.nome, "email": u.email, "is_admin": u.is_admin}
+        {"id": u.id, "nome": u.nome, "email": u.email,
+         "whatsapp": u.whatsapp_remetente or "", "is_admin": u.is_admin}
         for u in us
     ])
 
@@ -159,6 +160,7 @@ def criar_usuario():
     data = request.json or {}
     nome = (data.get("nome") or "").strip()
     email = (data.get("email") or "").strip().lower()
+    whatsapp = (data.get("whatsapp") or "").strip()
     senha = data.get("senha") or ""
     is_admin = bool(data.get("is_admin"))
     if not nome or not email or not senha:
@@ -173,6 +175,7 @@ def criar_usuario():
             nome=nome, email=email,
             senha_hash=generate_password_hash(senha),
             is_admin=is_admin, email_remetente=email,
+            whatsapp_remetente=whatsapp or None,
             senha_temporaria=True,  # força a pessoa a definir a própria senha no 1º login
         )
         s.add(u)

@@ -357,8 +357,12 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
   padding: 28px 32px;
   width: 480px;
   max-width: 95vw;
+  max-height: 90vh;        /* nunca passa da altura da tela */
+  overflow-y: auto;        /* rola dentro do próprio modal */
   box-shadow: 0 8px 32px rgba(0,0,0,.22);
 }
+/* trava a rolagem da página de trás quando um modal está aberto */
+body.modal-aberto { overflow: hidden; }
 .modal h2 { font-size: 1.05rem; margin-bottom: 18px; }
 .modal .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 .modal-btns { display: flex; gap: 10px; margin-top: 4px; }
@@ -746,6 +750,8 @@ input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
           <input type="text" id="nu-email" placeholder="pessoa@hevile.com.br">
         </div>
       </div>
+      <label>WhatsApp <span style="font-size:.75rem;color:#aaa">(aparece no cabeçalho da pessoa)</span></label>
+      <input type="text" id="nu-whatsapp" placeholder="(81) 99999-9999">
       <label>Senha inicial</label>
       <input type="text" id="nu-senha" placeholder="mínimo 6 caracteres">
       <label style="display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer">
@@ -1458,7 +1464,7 @@ async function carregarUsuarios() {
     row.innerHTML = `
       <div class="match-info">
         <div class="match-nome">${u.nome} ${u.is_admin ? '<span class="badge badge-novo">admin</span>' : ''}</div>
-        <div class="match-emp">${u.email}</div>
+        <div class="match-emp">${u.email}${u.whatsapp ? ' · 📱 ' + u.whatsapp : ''}</div>
       </div>
       <button class="btn-add-match" onclick="resetarSenha(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🔑 Senha</button>
       <button class="btn-add-match" style="background:#fce8e6;color:#c5221f" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🗑️</button>
@@ -1471,6 +1477,7 @@ async function salvarUsuario() {
   const payload = {
     nome:     document.getElementById('nu-nome').value.trim(),
     email:    document.getElementById('nu-email').value.trim(),
+    whatsapp: document.getElementById('nu-whatsapp').value.trim(),
     senha:    document.getElementById('nu-senha').value,
     is_admin: document.getElementById('nu-admin').checked,
   };
@@ -1481,7 +1488,7 @@ async function salvarUsuario() {
   const data = await res.json();
   if (data.ok) {
     toast(`✅ Usuário "${payload.nome}" criado!`, 'sucesso');
-    ['nu-nome','nu-email','nu-senha'].forEach(id => document.getElementById(id).value = '');
+    ['nu-nome','nu-email','nu-whatsapp','nu-senha'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('nu-admin').checked = false;
     carregarUsuarios();
   } else {
@@ -1511,6 +1518,20 @@ async function excluirUsuario(id, nome) {
 
 // ──────────────────────────────────────────────
 carregarContatos();
+
+// ──────────────────────────────────────────────
+// Trava a rolagem da página quando qualquer modal abre
+// ──────────────────────────────────────────────
+(function () {
+  const atualizar = () => {
+    const aberto = document.querySelector('.modal-bg.ativo');
+    document.body.classList.toggle('modal-aberto', !!aberto);
+  };
+  const obs = new MutationObserver(atualizar);
+  document.querySelectorAll('.modal-bg').forEach(m =>
+    obs.observe(m, { attributes: true, attributeFilter: ['class'] })
+  );
+})();
 </script>
 </body>
 </html>
