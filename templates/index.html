@@ -435,6 +435,10 @@ body.modal-aberto { overflow: hidden; }
     <div class="num" id="stat-email">{{ com_email }}</div>
     <div class="label">Com e-mail</div>
   </div>
+  <div class="stat-card" style="cursor:pointer" onclick="trocarAba('empresas')" title="Ver a aba Empresas">
+    <div class="num" id="stat-empresas">{{ total_empresas }}</div>
+    <div class="label">Empresas (CRM)</div>
+  </div>
 </div>
 
 <div class="main">
@@ -473,6 +477,7 @@ body.modal-aberto { overflow: hidden; }
 
       <button class="btn-wp"    onclick="enviarWhatsApp()">💬 Enviar via WhatsApp</button>
       <button class="btn-email" onclick="enviarEmail()">📧 Enviar via E-mail</button>
+      <div id="wa-links" style="display:none;margin-top:6px"></div>
     </div>
   </div>
 
@@ -482,6 +487,8 @@ body.modal-aberto { overflow: hidden; }
     <div class="abas">
       <div class="aba ativa" id="aba-contatos" onclick="trocarAba('contatos')">👥 Contatos</div>
       <div class="aba"       id="aba-campanha" onclick="trocarAba('campanha')">🎯 Campanha</div>
+      <div class="aba"       id="aba-empresas" onclick="trocarAba('empresas')">🏢 Empresas</div>
+      <div class="aba"       id="aba-tarefas"  onclick="trocarAba('tarefas')">✅ Tarefas <span id="aba-tarefas-count" style="background:#F15A24;color:#fff;border-radius:10px;padding:1px 8px;font-size:.72rem;font-weight:700;margin-left:4px">0</span></div>
     </div>
 
     <!-- ABA CONTATOS -->
@@ -503,6 +510,12 @@ body.modal-aberto { overflow: hidden; }
           <option value="email">Só E-mail</option>
         </select>
         <button class="btn-novo" onclick="abrirModal()">➕ Novo</button>
+        {% if is_admin %}
+        <input type="file" id="file-contatos" accept=".xlsx,.xls" style="display:none" onchange="uploadContatos(this.files[0])">
+        <button type="button" class="btn-sec" onclick="document.getElementById('file-contatos').click()"
+                style="width:auto;margin:0;padding:8px 14px;font-size:.85rem;white-space:nowrap"
+                title="Substituir pela exportação mais recente de PESSOAS do Agendor">🔄 Atualizar base</button>
+        {% endif %}
       </div>
       <div class="info-bar">
         <span>
@@ -582,6 +595,72 @@ body.modal-aberto { overflow: hidden; }
           <div style="font-size:.85rem;font-weight:600;color:#c5221f;margin-bottom:8px">❌ Não encontrados na base</div>
           <div id="lista-nao-enc"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ABA EMPRESAS -->
+    <div class="card painel-aba" id="painel-empresas" style="border-radius:0 10px 10px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3 style="margin:0">🏢 Empresas do Agendor</h3>
+        {% if is_admin %}
+        <div>
+          <input type="file" id="file-empresas" accept=".xlsx,.xls" style="display:none" onchange="uploadEmpresas(this.files[0])">
+          <button type="button" class="btn-sec" onclick="document.getElementById('file-empresas').click()"
+                  style="width:auto;margin:0;padding:7px 14px;font-size:.82rem" title="Substituir pela exportação mais recente de EMPRESAS do Agendor">🔄 Atualizar base</button>
+        </div>
+        {% endif %}
+      </div>
+      <p style="font-size:.83rem;color:#888;margin:8px 0 12px">
+        Empresas cadastradas no CRM. <b>Clique numa empresa</b> para adicioná-la ao campo "Para".
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <div class="busca-wrap" style="flex:1;min-width:200px">
+          <span class="ico">🔍</span>
+          <input type="text" id="emp-busca" placeholder="Buscar por nome, CNPJ, cidade..." oninput="filtrarEmpresas()">
+        </div>
+        <select id="emp-resp" onchange="filtrarEmpresas()"><option value="">Todos os responsáveis</option></select>
+        <select id="emp-canal" onchange="filtrarEmpresas()">
+          <option value="todos">Todos os canais</option>
+          <option value="whatsapp">Só WhatsApp</option>
+          <option value="email">Só E-mail</option>
+        </select>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:#888;margin-bottom:6px">
+        <span id="emp-info">Carregando...</span>
+      </div>
+      <div class="tabela-wrap">
+        <table id="emp-table">
+          <thead>
+            <tr><th>Empresa</th><th>Cidade/UF</th><th>Categoria</th><th>Responsável</th><th>WhatsApp</th><th>E-mail</th></tr>
+          </thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABA TAREFAS -->
+    <div class="card painel-aba" id="painel-tarefas" style="border-radius:0 10px 10px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3 style="margin:0">✅ Tarefas realizadas</h3>
+        <div>
+          <button type="button" class="btn-email" onclick="exportarTarefas()" style="width:auto;margin:0 6px 0 0;padding:7px 14px;font-size:.82rem">⬇️ Exportar em massa p/ Agendor</button>
+          <button type="button" class="btn-sec"   onclick="limparTarefas()"   style="width:auto;margin:0;padding:7px 14px;font-size:.82rem">🧹 Limpar</button>
+        </div>
+      </div>
+      <p style="font-size:.83rem;color:#888;margin:8px 0 14px">
+        Cada contato feito (WhatsApp aberto ou e-mail enviado) entra aqui automaticamente, com o seu usuário.
+        Quando quiser, exporte a planilha e suba na importação de atividades do Agendor. Depois de subir, use "Limpar".
+      </p>
+      <div id="tarefas-vazio" style="display:none;text-align:center;color:#888;padding:26px 0;font-size:.9rem">
+        Nenhuma tarefa registrada ainda — os contatos feitos aparecem aqui.
+      </div>
+      <div class="tabela-wrap">
+        <table id="tarefas-table" style="display:none">
+          <thead>
+            <tr><th>Quando</th><th>Canal</th><th>Contato</th><th>Empresa</th><th>Usuário</th><th>Oferta</th></tr>
+          </thead>
+          <tbody id="tarefas-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1026,21 +1105,41 @@ function toast(msg, tipo = '') {
   setTimeout(() => t.style.display = 'none', 4500);
 }
 
+let waAlvos = [];  // contatos do último disparo de WhatsApp (p/ registrar no clique)
+
 async function enviarWhatsApp() {
   const alvos = destinatarios.filter(c => c.whatsapp);
   if (!alvos.length) { toast('Nenhum destinatário com WhatsApp selecionado.', 'erro'); return; }
   const mensagem = document.getElementById('mensagem').value;
   if (!mensagem.trim()) { toast('Escreva a mensagem antes de enviar.', 'erro'); return; }
 
-  let abertos = 0;
-  for (const c of alvos) {
-    window.open(`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(getMensagem(c.nome))}`, '_blank');
-    abertos++;
-    if (abertos >= 10) break;
+  const link = c => `https://wa.me/${c.whatsapp}?text=${encodeURIComponent(getMensagem(c.nome))}`;
+  waAlvos = alvos;
+
+  // Abre o 1º direto (gesto do usuário) e registra a tarefa; os demais viram links
+  // clicáveis — o navegador BLOQUEIA abrir várias abas de uma vez.
+  window.open(link(alvos[0]), '_blank');
+  registrarEnvios([alvos[0]], 'WhatsApp');
+
+  const box = document.getElementById('wa-links');
+  if (alvos.length > 1) {
+    const estilo = 'display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;margin-bottom:5px;border:1px solid #e3ebf0;border-radius:8px;background:#f3f7f9;text-decoration:none;color:#333;font-size:.85rem';
+    const itens = alvos.map((c, i) =>
+      `<a href="${link(c)}" target="_blank" rel="noopener" onclick="waLinkClick(${i}, this)" style="${estilo}${i === 0 ? ';opacity:.55' : ''}">`
+      + `<span>📲 ${c.nome}</span><span style="color:#25D366;font-weight:600">${c.whatsapp}</span></a>`
+    ).join('');
+    box.innerHTML = `<div style="font-size:.8rem;color:#666;margin:8px 0 6px">Clique em cada contato para abrir o WhatsApp${anexos.length ? ' (anexos vão só no e-mail)' : ''}:</div>${itens}`;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none'; box.innerHTML = '';
   }
-  const rest = alvos.length - abertos;
-  const notaAnexo = anexos.length ? ' · anexos vão só no e-mail' : '';
-  toast(`✅ ${abertos} WhatsApp(s) aberto(s)!${rest > 0 ? ` Repita para os demais ${rest}.` : ''}${notaAnexo}`, 'sucesso');
+  toast(alvos.length === 1 ? '✅ WhatsApp aberto!' : `✅ ${alvos.length} contatos: clique em cada um na lista abaixo.`, 'sucesso');
+}
+
+function waLinkClick(i, el) {
+  el.style.opacity = '.55';
+  const c = waAlvos[i];
+  if (c && !el.dataset.registrado) { el.dataset.registrado = '1'; registrarEnvios([c], 'WhatsApp'); }
 }
 
 // ── ANEXOS (apenas e-mail; wa.me não suporta mídia) ──
@@ -1087,6 +1186,9 @@ async function enviarEmail() {
   });
   const data = await res.json();
   if (data.ok) {
+    // registra como tarefa só os que não deram erro
+    const comErro = new Set((data.erros || []).map(e => String(e).split(':')[0].trim()));
+    registrarEnvios(alvos.filter(c => !comErro.has(c.email)), 'E-mail');
     toast(`✅ ${data.enviados} e-mail(s) enviado(s)!${data.erros.length ? ` ${data.erros.length} erro(s).` : ''}`, 'sucesso');
   } else {
     toast('❌ ' + data.erro, 'erro');
@@ -1188,11 +1290,13 @@ async function reprocessar(id, nomeArq) {
 // ABAS
 // ──────────────────────────────────────────────
 function trocarAba(aba) {
-  ['contatos','campanha'].forEach(a => {
+  ['contatos','campanha','empresas','tarefas'].forEach(a => {
     document.getElementById('aba-' + a).classList.toggle('ativa', a === aba);
     document.getElementById('painel-' + a).classList.toggle('ativo', a === aba);
   });
   if (aba === 'campanha') carregarHistorico();
+  if (aba === 'empresas') carregarEmpresas();
+  if (aba === 'tarefas')  carregarTarefas();
 }
 
 // ──────────────────────────────────────────────
@@ -1517,7 +1621,160 @@ async function excluirUsuario(id, nome) {
 }
 
 // ──────────────────────────────────────────────
+// ABA EMPRESAS
+// ──────────────────────────────────────────────
+let todasEmpresas = [];
+
+async function carregarEmpresas() {
+  if (!todasEmpresas.length) {
+    document.getElementById('emp-info').textContent = 'Carregando...';
+    try { todasEmpresas = await (await fetch('/empresas')).json(); }
+    catch (e) { document.getElementById('emp-info').textContent = 'Erro ao carregar a base.'; return; }
+    const resp = [...new Set(todasEmpresas.map(e => e.responsavel).filter(Boolean))].sort();
+    document.getElementById('emp-resp').innerHTML = '<option value="">Todos os responsáveis</option>' +
+      resp.map(r => `<option value="${r}">${r}</option>`).join('');
+  }
+  filtrarEmpresas();
+}
+
+function filtrarEmpresas() {
+  const termo = (document.getElementById('emp-busca').value || '').toLowerCase().trim();
+  const resp  = document.getElementById('emp-resp').value;
+  const canal = document.getElementById('emp-canal').value;
+  const lista = todasEmpresas.filter(e => {
+    if (resp && e.responsavel !== resp) return false;
+    if (canal === 'whatsapp' && !e.whatsapp) return false;
+    if (canal === 'email' && !e.email) return false;
+    if (termo) {
+      const blob = `${e.nome} ${e.razao} ${e.cnpj} ${e.cidade} ${e.categoria} ${e.origem}`.toLowerCase();
+      if (!blob.includes(termo)) return false;
+    }
+    return true;
+  });
+  renderEmpresas(lista);
+}
+
+function renderEmpresas(lista) {
+  const tbody = document.getElementById('emp-tbody');
+  const termo = document.getElementById('emp-busca').value.trim();
+  document.getElementById('emp-info').textContent =
+    `${lista.length} empresa(s)` + (lista.length !== todasEmpresas.length ? ` de ${todasEmpresas.length}` : '');
+  tbody.innerHTML = '';
+  lista.slice(0, 400).forEach(e => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.title = 'Clique para adicionar ao campo "Para"';
+    const cidade = [e.cidade, e.estado].filter(Boolean).join('/');
+    tr.innerHTML = `
+      <td><b>${hl(e.nome, termo)}</b></td>
+      <td>${cidade || '—'}</td>
+      <td><span class="badge ${badgeClass(e.categoria)}">${e.categoria}</span></td>
+      <td style="font-size:.8rem">${e.responsavel || '—'}</td>
+      <td>${e.whatsapp ? '✅ ' + e.whatsapp : '<span style="color:#ccc">—</span>'}</td>
+      <td>${e.email ? '✅ ' + e.email : '<span style="color:#ccc">—</span>'}</td>
+    `;
+    tr.addEventListener('click', () => adicionarDestinatarioObj({
+      nome: e.nome, empresa: e.nome, whatsapp: e.whatsapp, email: e.email, categoria: e.categoria,
+    }));
+    tbody.appendChild(tr);
+  });
+  if (lista.length > 400) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="6" style="text-align:center;color:#888;font-size:.8rem">Mostrando 400 de ${lista.length} — refine a busca.</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ── UPLOADS DE BASE (admin) ──
+async function uploadContatos(file) {
+  if (!file) return;
+  toast('Atualizando base de contatos...', '');
+  const form = new FormData(); form.append('arquivo', file);
+  try {
+    const d = await (await fetch('/contatos_upload', { method: 'POST', body: form })).json();
+    if (!d.ok) { toast('❌ ' + d.erro, 'erro'); return; }
+    await carregarContatos();
+    toast(`✅ Base atualizada: ${d.total} pessoas (${d.novos} novas, ${d.atualizados} atualizadas).`, 'sucesso');
+  } catch (e) { toast('❌ Erro ao enviar a planilha.', 'erro'); }
+  const el = document.getElementById('file-contatos'); if (el) el.value = '';
+}
+
+async function uploadEmpresas(file) {
+  if (!file) return;
+  toast('Atualizando base de empresas...', '');
+  const form = new FormData(); form.append('arquivo', file);
+  try {
+    const d = await (await fetch('/empresas_upload', { method: 'POST', body: form })).json();
+    if (!d.ok) { toast('❌ ' + d.erro, 'erro'); return; }
+    todasEmpresas = [];
+    await carregarEmpresas();
+    document.getElementById('stat-empresas').textContent = d.total;
+    toast(`✅ Base atualizada: ${d.total} empresas.`, 'sucesso');
+  } catch (e) { toast('❌ Erro ao enviar a planilha.', 'erro'); }
+  const el = document.getElementById('file-empresas'); if (el) el.value = '';
+}
+
+// ──────────────────────────────────────────────
+// ABA TAREFAS (envios → exportação em massa p/ Agendor)
+// ──────────────────────────────────────────────
+async function registrarEnvios(lista, canal) {
+  if (!lista || !lista.length) return;
+  const mensagem = document.getElementById('mensagem').value || '';
+  const resumo = mensagem.length > 300 ? mensagem.slice(0, 300) + '…' : mensagem;
+  const envios = lista.map(c => ({
+    canal, nome: c.nome, empresa: c.empresa || '', whatsapp: c.whatsapp || '',
+    email: c.email || '', categoria: c.categoria || '',
+    descricao: `Campanha Hevile — oferta enviada via ${canal}:\n${resumo}`,
+  }));
+  try {
+    const d = await (await fetch('/tarefas_agendor/registrar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ envios })
+    })).json();
+    if (d.ok) atualizarTarefasBadge(d.total);
+  } catch (e) { /* registro é acessório: não interrompe o envio */ }
+}
+
+async function atualizarTarefasBadge(total) {
+  if (total === undefined) {
+    try { total = (await (await fetch('/tarefas_agendor')).json()).length; } catch (e) { total = 0; }
+  }
+  const el = document.getElementById('aba-tarefas-count');
+  if (el) el.textContent = total;
+}
+
+async function carregarTarefas() {
+  let tarefas = [];
+  try { tarefas = await (await fetch('/tarefas_agendor')).json(); } catch (e) {}
+  atualizarTarefasBadge(tarefas.length);
+  const table = document.getElementById('tarefas-table');
+  const vazio = document.getElementById('tarefas-vazio');
+  const tbody = document.getElementById('tarefas-tbody');
+  if (!tarefas.length) { table.style.display = 'none'; vazio.style.display = 'block'; return; }
+  vazio.style.display = 'none'; table.style.display = 'table';
+  const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  tbody.innerHTML = tarefas.map(t => {
+    const canal = t.canal === 'WhatsApp'
+      ? '<span class="badge badge-ativo">💬 WhatsApp</span>'
+      : '<span class="badge badge-novo">📧 E-mail</span>';
+    const oferta = esc((t.descricao || '').split('\n').slice(1).join(' ')).slice(0, 90);
+    return `<tr><td style="white-space:nowrap">${esc(t.quando)}</td><td>${canal}</td>`
+         + `<td><b>${esc(t.nome)}</b></td><td>${esc(t.empresa)}</td>`
+         + `<td>${esc(t.usuario) || '—'}</td><td style="font-size:.8rem;color:#6B6B6B">${oferta}</td></tr>`;
+  }).join('');
+}
+
+function exportarTarefas() { window.location.href = '/tarefas_agendor/exportar'; }
+
+async function limparTarefas() {
+  if (!confirm('Limpar todas as suas tarefas registradas? (faça isso somente após subir a planilha no Agendor)')) return;
+  await fetch('/tarefas_agendor/limpar', { method: 'POST' });
+  carregarTarefas();
+  toast('🧹 Tarefas limpas.', 'sucesso');
+}
+
+// ──────────────────────────────────────────────
 carregarContatos();
+atualizarTarefasBadge();
 
 // ──────────────────────────────────────────────
 // Trava a rolagem da página quando qualquer modal abre

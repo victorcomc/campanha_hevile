@@ -20,10 +20,11 @@ import pandas as pd
 from werkzeug.security import generate_password_hash
 
 from db import SessionLocal, init_db
-from models import Contato, Usuario
-from utils import limpar_email, limpar_telefone
+from importacao import parse_contatos_df, parse_empresas_df, substituir_empresas
+from models import Contato, Empresa, Usuario
 
 SEED_FILE = "seed_data.enc"
+SEED_EMPRESAS = "seed_empresas.enc"
 
 # Mapa: coluna da planilha do Agendor -> campo do nosso modelo
 COLS = {
@@ -47,26 +48,12 @@ def _txt(v):
 
 
 def _linhas_da_planilha(caminho):
-    """Lê o .xlsx e devolve uma lista de dicts já LIMPOS (telefone/e-mail corrigidos)."""
+    """Lê o .xlsx de PESSOAS e devolve uma lista de dicts já LIMPOS."""
     df = pd.read_excel(caminho)
     faltando = [c for c in COLS if c not in df.columns]
     if faltando:
         print(f"⚠️  Colunas ausentes na planilha (serão ignoradas): {faltando}")
-    registros = []
-    for _, r in df.iterrows():
-        agendor_id = r.get("Código da pessoa")
-        registros.append({
-            "agendor_id": int(agendor_id) if pd.notna(agendor_id) else None,
-            "nome": _txt(r.get("Nome")) or "(sem nome)",
-            "empresa": _txt(r.get("Empresa relacionada")),
-            "cargo": _txt(r.get("Cargo")),
-            "email": limpar_email(r.get("E-mail")),
-            "whatsapp": limpar_telefone(r.get("WhatsApp")),
-            "categoria": _txt(r.get("Categoria")) or "Sem categoria",
-            "cidade": _txt(r.get("Cidade")),
-            "estado": _txt(r.get("Estado")),
-        })
-    return registros
+    return parse_contatos_df(df)
 
 
 def _upsert(registros):
@@ -144,6 +131,44 @@ def seed_embed(origem=SEED_FILE):
     _upsert(registros)
 
 
+def importar_empresas(caminho):
+    df = pd.read_excel(caminho)
+    if "Nome Fantasia" not in df.columns and "Razão Social" not in df.columns:
+        print("⚠️  Planilha sem 'Nome Fantasia'/'Razão Social' — confira se é a exportação de EMPRESAS.")
+    s = SessionLocal()
+    r = substituir_empresas(s, parse_empresas_df(df))
+    s.close()
+    print(f"\n✅ Empresas importadas (substituíram a base): {r['total']}")
+
+
+def gerar_seed_empresas(caminho, destino=SEED_EMPRESAS):
+    import gzip
+    import json
+
+    from crypto import _fernet
+
+    regs = parse_empresas_df(pd.read_excel(caminho))
+    token = _fernet().encrypt(gzip.compress(json.dumps(regs, ensure_ascii=False).encode("utf-8")))
+    with open(destino, "wb") as f:
+        f.write(token)
+    print(f"✅ Seed de empresas gerado: {destino} ({len(token)} bytes, {len(regs)} empresas)")
+
+
+def seed_empresas_embed(origem=SEED_EMPRESAS):
+    import gzip
+    import json
+
+    from crypto import _fernet
+
+    with open(origem, "rb") as f:
+        token = f.read()
+    regs = json.loads(gzip.decompress(_fernet().decrypt(token)).decode("utf-8"))
+    s = SessionLocal()
+    r = substituir_empresas(s, regs)
+    s.close()
+    print(f"✅ Empresas carregadas do seed: {r['total']}")
+
+
 def criar_usuario(nome, email, senha, is_admin=False):
     email = email.strip().lower()
     s = SessionLocal()
@@ -175,7 +200,15 @@ def main():
     pg = sub.add_parser("gerar-seed", help="gera o seed criptografado a partir da planilha")
     pg.add_argument("caminho")
 
-    sub.add_parser("seed-embed", help="popula o banco a partir do seed criptografado")
+    sub.add_parser("seed-embed", help="popula os contatos a partir do seed criptografado")
+
+    pie = sub.add_parser("importar-empresas", help="importa a planilha de EMPRESAS (.xlsx)")
+    pie.add_argument("caminho")
+
+    pge = sub.add_parser("gerar-seed-empresas", help="gera o seed criptografado de empresas")
+    pge.add_argument("caminho")
+
+    sub.add_parser("seed-empresas", help="popula as empresas a partir do seed criptografado")
 
     pa = sub.add_parser("criar-admin", help="cria um usuário administrador")
     pa.add_argument("--nome", required=True)
@@ -201,6 +234,14 @@ def main():
     elif args.cmd == "seed-embed":
         init_db()
         seed_embed()
+    elif args.cmd == "importar-empresas":
+        init_db()
+        importar_empresas(args.caminho)
+    elif args.cmd == "gerar-seed-empresas":
+        gerar_seed_empresas(args.caminho)
+    elif args.cmd == "seed-empresas":
+        init_db()
+        seed_empresas_embed()
     elif args.cmd == "criar-admin":
         init_db()
         criar_usuario(args.nome, args.email, args.senha, is_admin=True)

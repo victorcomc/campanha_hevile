@@ -7,11 +7,12 @@ Substitui o app antigo (.exe + planilha Excel). Mesmas funcionalidades, agora:
 """
 import csv
 import io
+from datetime import datetime
 from functools import wraps
 
 import pandas as pd
 from flask import (
-    Flask, jsonify, redirect, render_template, request, url_for,
+    Flask, jsonify, redirect, render_template, request, send_file, url_for,
 )
 from flask_login import (
     LoginManager, current_user, login_required, login_user, logout_user,
@@ -22,7 +23,8 @@ import envio
 from config import Config
 from crypto import cripto
 from db import SessionLocal, init_db
-from models import Campanha, Contato, Usuario
+from importacao import parse_contatos_df, parse_empresas_df, substituir_empresas, upsert_contatos
+from models import Campanha, Contato, Empresa, Tarefa, Usuario
 from utils import limpar_email, limpar_telefone, similaridade
 
 app = Flask(__name__)
@@ -128,12 +130,14 @@ def index():
     total = s.query(Contato).count()
     com_whatsapp = s.query(Contato).filter(Contato.whatsapp.isnot(None)).count()
     com_email = s.query(Contato).filter(Contato.email.isnot(None)).count()
+    total_empresas = s.query(Empresa).count()
     return render_template(
         "index.html",
         categorias=categorias,
         total=total,
         com_whatsapp=com_whatsapp,
         com_email=com_email,
+        total_empresas=total_empresas,
         nome_remetente=current_user.nome or "",
         whatsapp_remetente=current_user.whatsapp_remetente or "",
         email_remetente=current_user.email_remetente or "",
@@ -484,6 +488,145 @@ def reprocessar(cid):
     except Exception as e:
         return jsonify(ok=False, erro=f"Erro ao ler o arquivo: {e}")
     return jsonify(ok=True, **_cruzar(df_camp))
+
+
+# ─────────────────────────── Empresas ───────────────────────────
+@app.route("/empresas")
+@login_required
+def empresas_listar():
+    s = db()
+    return jsonify([e.to_dict() for e in s.query(Empresa).order_by(Empresa.nome).all()])
+
+
+@app.route("/empresas_upload", methods=["POST"])
+@admin_required
+def empresas_upload():
+    f = request.files.get("arquivo")
+    if not f:
+        return jsonify(ok=False, erro="Nenhum arquivo enviado.")
+    try:
+        df = pd.read_excel(io.BytesIO(f.read()))
+    except Exception as e:
+        return jsonify(ok=False, erro=f"Não consegui ler a planilha: {e}")
+    if "Nome Fantasia" not in df.columns and "Razão Social" not in df.columns:
+        return jsonify(ok=False, erro="Planilha sem 'Nome Fantasia' — exporte as EMPRESAS no Agendor.")
+    s = db()
+    r = substituir_empresas(s, parse_empresas_df(df))
+    return jsonify(ok=True, total=r["total"])
+
+
+@app.route("/contatos_upload", methods=["POST"])
+@admin_required
+def contatos_upload():
+    f = request.files.get("arquivo")
+    if not f:
+        return jsonify(ok=False, erro="Nenhum arquivo enviado.")
+    try:
+        df = pd.read_excel(io.BytesIO(f.read()))
+    except Exception as e:
+        return jsonify(ok=False, erro=f"Não consegui ler a planilha: {e}")
+    if "Nome" not in df.columns or "Código da pessoa" not in df.columns:
+        return jsonify(ok=False, erro="Planilha sem as colunas do Agendor ('Nome', 'Código da pessoa').")
+    s = db()
+    r = upsert_contatos(s, parse_contatos_df(df))
+    return jsonify(ok=True, total=r["total"], novos=r["novos"], atualizados=r["atualizados"])
+
+
+# ─────────────────────────── Tarefas (envios → Agendor) ───────────────────────────
+# Colunas idênticas à exportação de atividades do Agendor, p/ subir de volta no CRM.
+AGENDOR_COLS = [
+    "Código da tarefa", "Usuário que realizou a tarefa", "Código do Negócio",
+    "Negócio relacionado", "Código da Pessoa", "Pessoa relacionada",
+    "Código da Empresa", "Empresa relacionada", "Data de cadastro",
+    "Data de agendamento", "Data de atualização", "Usuários responsáveis",
+    "Usuário que finalizou", "Data de finalização", "Tipo de tarefa", "Descrição",
+    "Telefone", "Celular", "Fax", "Whatsapp", "Ramal", "Rádio", "E-mail",
+    "País", "Estado", "Cidade", "CEP", "Bairro", "Rua", "Número", "Complemento",
+    "Facebook", "Twitter", "LinkedIn", "Skype", "Instagram",
+    "Categoria", "Setor da Empresa", "Origem do cliente",
+]
+
+
+@app.route("/tarefas_agendor")
+@login_required
+def tarefas_listar():
+    s = db()
+    t = (s.query(Tarefa).filter(Tarefa.usuario_id == current_user.id)
+         .order_by(Tarefa.quando.desc()).limit(500).all())
+    return jsonify([x.to_dict() for x in t])
+
+
+@app.route("/tarefas_agendor/registrar", methods=["POST"])
+@login_required
+def tarefas_registrar():
+    data = request.json or {}
+    envios = data.get("envios", [])
+    s = db()
+    quem = current_user.nome or current_user.email
+    novos = 0
+    for e in envios:
+        s.add(Tarefa(
+            usuario_id=current_user.id,
+            canal=e.get("canal", ""),
+            nome=e.get("nome"),
+            empresa=e.get("empresa"),
+            whatsapp=e.get("whatsapp") or None,
+            email=e.get("email") or None,
+            categoria=e.get("categoria") or None,
+            descricao=e.get("descricao", ""),
+            usuario_nome=quem,
+        ))
+        novos += 1
+    s.commit()
+    total = s.query(Tarefa).filter(Tarefa.usuario_id == current_user.id).count()
+    return jsonify(ok=True, novos=novos, total=total)
+
+
+@app.route("/tarefas_agendor/limpar", methods=["POST"])
+@login_required
+def tarefas_limpar():
+    s = db()
+    s.query(Tarefa).filter(Tarefa.usuario_id == current_user.id).delete()
+    s.commit()
+    return jsonify(ok=True)
+
+
+@app.route("/tarefas_agendor/exportar")
+@login_required
+def tarefas_exportar():
+    s = db()
+    tarefas = (s.query(Tarefa).filter(Tarefa.usuario_id == current_user.id)
+               .order_by(Tarefa.quando.desc()).all())
+    if not tarefas:
+        return jsonify(ok=False, erro="Nenhuma tarefa registrada ainda.")
+    linhas = []
+    for t in tarefas:
+        quando = t.quando.strftime("%Y-%m-%d %H:%M:%S") if t.quando else None
+        linha = {c: None for c in AGENDOR_COLS}
+        linha["Usuário que realizou a tarefa"] = t.usuario_nome
+        linha["Pessoa relacionada"] = t.nome
+        linha["Empresa relacionada"] = t.empresa
+        linha["Data de cadastro"] = quando
+        linha["Data de agendamento"] = quando
+        linha["Data de atualização"] = quando
+        linha["Usuários responsáveis"] = t.usuario_nome
+        linha["Usuário que finalizou"] = t.usuario_nome
+        linha["Data de finalização"] = quando
+        linha["Tipo de tarefa"] = t.canal or "WhatsApp"
+        linha["Descrição"] = t.descricao or ""
+        linha["Whatsapp"] = t.whatsapp
+        linha["E-mail"] = t.email
+        linha["Categoria"] = t.categoria
+        linhas.append(linha)
+    df = pd.DataFrame(linhas, columns=AGENDOR_COLS)
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False, engine="openpyxl")
+    buf.seek(0)
+    nome = f"tarefas_agendor_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    return send_file(
+        buf, as_attachment=True, download_name=nome,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
 if __name__ == "__main__":
