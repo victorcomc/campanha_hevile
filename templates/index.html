@@ -497,7 +497,8 @@ body.modal-aberto { overflow: hidden; }
       <div class="barra-lista">
         <div class="busca-wrap">
           <span class="ico">🔍</span>
-          <input type="search" id="busca-lista" name="busca-contatos-hevile" placeholder="Buscar por nome ou empresa..." oninput="buscarLista()" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="busca-lista" placeholder="Buscar por nome ou empresa..." oninput="buscarLista()"
+                 autocomplete="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')">
         </div>
         <select id="sel-categoria" onchange="aplicarFiltros()">
           <option value="">Todas as categorias</option>
@@ -617,7 +618,8 @@ body.modal-aberto { overflow: hidden; }
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <div class="busca-wrap" style="flex:1;min-width:200px">
           <span class="ico">🔍</span>
-          <input type="search" id="emp-busca" name="busca-empresas-hevile" placeholder="Buscar por nome, CNPJ, cidade..." oninput="filtrarEmpresas()" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="emp-busca" placeholder="Buscar por nome, CNPJ, cidade..." oninput="filtrarEmpresas()"
+                 autocomplete="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')">
         </div>
         <select id="emp-resp" onchange="filtrarEmpresas()"><option value="">Todos os responsáveis</option></select>
         <select id="emp-canal" onchange="filtrarEmpresas()">
